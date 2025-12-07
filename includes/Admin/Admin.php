@@ -10,6 +10,14 @@ use WPR\Republisher\Republisher\Query;
 use WPR\Republisher\Scheduler\Cron;
 
 /**
+ * Grace period (in seconds) before considering a scheduled event as overdue.
+ * Allows for normal WP Cron delays.
+ *
+ * @since    1.0.0
+ */
+const WPR_CRON_OVERDUE_THRESHOLD = 3600; // 1 hour
+
+/**
  * The admin-specific functionality of the plugin.
  *
  * @link       https://www.paulramotowski.com
@@ -157,6 +165,143 @@ class Admin {
 	public function register_audit_hooks(): void {
 		add_action( 'update_option_wpr_settings', [ $this, 'log_settings_change' ], 10, 2 );
 		add_action( 'add_option_wpr_settings', [ $this, 'log_settings_added' ], 10, 2 );
+	}
+
+	/**
+	 * Display admin notices for cron status issues.
+	 *
+	 * Shows warnings when WP Cron is disabled, events aren't scheduled,
+	 * or scheduled events appear to be stalled.
+	 *
+	 * @since    1.0.0
+	 */
+	public function display_admin_notices(): void {
+		// Only show notices on our settings page or the plugins page
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return;
+		}
+
+		$show_on_screens = [ $this->page_hook, 'plugins' ];
+		if ( ! in_array( $screen->id, $show_on_screens, true ) ) {
+			return;
+		}
+
+		// Only show to users who can manage options
+		if ( ! current_user_can( $this->get_required_capability() ) ) {
+			return;
+		}
+
+		$cron_health = $this->check_cron_health();
+
+		// Check for critical issues first
+		if ( $cron_health['wp_cron_disabled'] && $cron_health['plugin_cron_enabled'] ) {
+			$this->render_admin_notice(
+				'error',
+				sprintf(
+					/* translators: %1$s: WP Cron constant name, %2$s: plugin settings URL */
+					__( '<strong>WP Cron Disabled:</strong> The <code>%1$s</code> constant is set to true, but the Post Republishing plugin has WP Cron enabled. Scheduled republishing will not work. Either <a href="%2$s">disable WP Cron in plugin settings</a> and use the REST API or WP-CLI instead, or enable WP Cron at the system level.', 'rd-post-republishing' ),
+					'DISABLE_WP_CRON',
+					esc_url( admin_url( 'options-general.php?page=' . $this->plugin_name . '&tab=settings' ) )
+				)
+			);
+			return; // Don't show other notices if this critical issue exists
+		}
+
+		// Check if plugin cron is enabled but events are not scheduled
+		if ( $cron_health['plugin_cron_enabled'] && ! $cron_health['events_scheduled'] ) {
+			$this->render_admin_notice(
+				'warning',
+				sprintf(
+					/* translators: %s: plugin settings URL */
+					__( '<strong>Cron Events Not Scheduled:</strong> Post Republishing has WP Cron enabled, but the scheduled events are missing. <a href="%s">Visit the settings page</a> to trigger rescheduling, or deactivate and reactivate the plugin.', 'rd-post-republishing' ),
+					esc_url( admin_url( 'options-general.php?page=' . $this->plugin_name . '&tab=settings' ) )
+				)
+			);
+			return;
+		}
+
+		// Check if scheduled event is overdue (possible stuck cron)
+		if ( $cron_health['daily_event_overdue'] ) {
+			$this->render_admin_notice(
+				'warning',
+				sprintf(
+					/* translators: %1$s: scheduled time, %2$s: WP Cron info URL */
+					__( '<strong>Scheduled Event Overdue:</strong> The daily republishing was scheduled for %1$s but hasn\'t run yet. This may indicate WP Cron isn\'t working correctly. Consider <a href="%2$s" target="_blank">setting up a real cron job</a> for better reliability.', 'rd-post-republishing' ),
+					esc_html( $cron_health['daily_scheduled_time'] ?? __( 'unknown', 'rd-post-republishing' ) ),
+					'https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/'
+				)
+			);
+		}
+
+		// Informational notice about alternate cron
+		if ( $cron_health['alternate_cron'] && $cron_health['plugin_cron_enabled'] ) {
+			$this->render_admin_notice(
+				'info',
+				__( '<strong>Alternate Cron Active:</strong> WordPress is using alternate cron mode. Scheduled republishing may be slightly delayed as it relies on site visits to trigger cron jobs.', 'rd-post-republishing' )
+			);
+		}
+	}
+
+	/**
+	 * Check WP Cron health status.
+	 *
+	 * @since    1.0.0
+	 * @return   array<string, mixed>  Array of cron health indicators.
+	 */
+	public function check_cron_health(): array {
+		$cron = new Cron();
+		$status = $cron->get_status();
+		$repository = new Repository();
+		$settings = $repository->get_settings();
+
+		$daily_timestamp = $status['daily_republishing']['timestamp'] ?? null;
+		$daily_overdue = false;
+		$daily_scheduled_time = null;
+
+		if ( $daily_timestamp ) {
+			$daily_scheduled_time = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $daily_timestamp );
+			// Check if more than threshold seconds have passed since scheduled time
+			$daily_overdue = ( $daily_timestamp + WPR_CRON_OVERDUE_THRESHOLD ) < time();
+		}
+
+		return [
+			'wp_cron_disabled'      => $cron->is_wp_cron_disabled(),
+			'alternate_cron'        => $cron->is_alternate_cron(),
+			'plugin_cron_enabled'   => ! empty( $settings['wp_cron_enabled'] ),
+			'events_scheduled'      => $status['daily_republishing']['scheduled'] ?? false,
+			'daily_scheduled_time'  => $daily_scheduled_time,
+			'daily_event_overdue'   => $daily_overdue,
+			'next_run_timestamp'    => $daily_timestamp,
+		];
+	}
+
+	/**
+	 * Render an admin notice.
+	 *
+	 * @since    1.0.0
+	 * @param    string  $type     Notice type: 'error', 'warning', 'success', 'info'.
+	 * @param    string  $message  The notice message (can contain HTML).
+	 */
+	private function render_admin_notice( string $type, string $message ): void {
+		$allowed_types = [ 'error', 'warning', 'success', 'info' ];
+		$type = in_array( $type, $allowed_types, true ) ? $type : 'info';
+
+		printf(
+			'<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
+			esc_attr( $type ),
+			wp_kses(
+				$message,
+				[
+					'strong' => [],
+					'code'   => [],
+					'a'      => [
+						'href'   => [],
+						'target' => [],
+					],
+				]
+			)
+		);
 	}
 
 	/**

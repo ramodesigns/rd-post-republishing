@@ -619,3 +619,26 @@ msgstr ""
 #. translators: %s: next run timestamp
 msgid "Next daily republishing: %s"
 msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$s: WP Cron constant name, %2$s: plugin settings URL
+msgid "<strong>WP Cron Disabled:</strong> The <code>%1$s</code> constant is set to true, but the Post Republishing plugin has WP Cron enabled. Scheduled republishing will not work. Either <a href=\"%2$s\">disable WP Cron in plugin settings</a> and use the REST API or WP-CLI instead, or enable WP Cron at the system level."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: plugin settings URL
+msgid "<strong>Cron Events Not Scheduled:</strong> Post Republishing has WP Cron enabled, but the scheduled events are missing. <a href=\"%s\">Visit the settings page</a> to trigger rescheduling, or deactivate and reactivate the plugin."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$s: scheduled time, %2$s: WP Cron info URL
+msgid "<strong>Scheduled Event Overdue:</strong> The daily republishing was scheduled for %1$s but hasn't run yet. This may indicate WP Cron isn't working correctly. Consider <a href=\"%2$s\" target=\"_blank\">setting up a real cron job</a> for better reliability."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "unknown"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "<strong>Alternate Cron Active:</strong> WordPress is using alternate cron mode. Scheduled republishing may be slightly delayed as it relies on site visits to trigger cron jobs."
+msgstr ""
