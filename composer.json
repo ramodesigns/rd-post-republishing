@@ -25,7 +25,8 @@
     },
     "autoload": {
         "psr-4": {
-            "WPR\\Republisher\\": "includes/"
+            "WPR\\Republisher\\": "includes/",
+            "WPR\\Republisher\\CLI\\": "cli/"
         }
     },
     "autoload-dev": {

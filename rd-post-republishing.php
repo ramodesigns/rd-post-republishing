@@ -32,6 +32,7 @@ declare(strict_types=1);
 use WPR\Republisher\Core\Activator;
 use WPR\Republisher\Core\Deactivator;
 use WPR\Republisher\Core\Plugin;
+use WPR\Republisher\CLI\Commands;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -64,7 +65,6 @@ if ( file_exists( $autoloader ) ) {
 	// Fallback manual autoloader for development without Composer
 	spl_autoload_register( static function ( string $class ): void {
 		$prefix = 'WPR\\Republisher\\';
-		$base_dir = RD_POST_REPUBLISHING_PATH . 'includes/';
 
 		$len = strlen( $prefix );
 		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
@@ -72,10 +72,23 @@ if ( file_exists( $autoloader ) ) {
 		}
 
 		$relative_class = substr( $class, $len );
-		$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
-		if ( file_exists( $file ) ) {
-			require_once $file;
+		// Map namespaces to directories
+		$namespace_map = [
+			'CLI\\'      => RD_POST_REPUBLISHING_PATH . 'cli/',
+			''           => RD_POST_REPUBLISHING_PATH . 'includes/',
+		];
+
+		foreach ( $namespace_map as $namespace => $base_dir ) {
+			if ( '' === $namespace || strncmp( $namespace, $relative_class, strlen( $namespace ) ) === 0 ) {
+				$class_name = '' === $namespace ? $relative_class : substr( $relative_class, strlen( $namespace ) );
+				$file = $base_dir . str_replace( '\\', '/', $class_name ) . '.php';
+
+				if ( file_exists( $file ) ) {
+					require_once $file;
+					return;
+				}
+			}
 		}
 	} );
 }
@@ -116,3 +129,12 @@ function run_rd_post_republishing(): void {
 }
 
 run_rd_post_republishing();
+
+/**
+ * Register WP-CLI commands if available.
+ *
+ * @since    1.0.0
+ */
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	Commands::register();
+}
