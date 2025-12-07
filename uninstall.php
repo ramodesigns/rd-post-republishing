@@ -1,31 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Fired when the plugin is uninstalled.
  *
- * When populating this file, consider the following flow
- * of control:
- *
- * - This method should be static
- * - Check if the $_REQUEST content actually is the plugin name
- * - Run an admin referrer check to make sure it goes through authentication
- * - Verify the output of $_GET makes sense
- * - Repeat with other user roles. Best directly by using the links/query string parameters.
- * - Repeat things for multisite. Once for a single site in the network, once sitewide.
- *
- * This file may be updated more in future version of the Boilerplate; however, this is the
- * general skeleton and outline for how the file should work.
- *
- * For more information, see the following discussion:
- * https://github.com/tommcfarlin/WordPress-Plugin-Boilerplate/pull/123#issuecomment-28541913
+ * This file is called when the plugin is uninstalled (deleted) from WordPress.
+ * It cleans up all plugin data including database tables and options.
  *
  * @link       https://www.paulramotowski.com
  * @since      1.0.0
  *
- * @package    Rd_Post_Republishing
+ * @package    RD_Post_Republishing
  */
 
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
+
+/**
+ * Remove all plugin data on uninstall.
+ */
+function wpr_uninstall_cleanup(): void {
+	global $wpdb;
+
+	// Delete custom database tables
+	$tables = [
+		$wpdb->prefix . 'wpr_history',
+		$wpdb->prefix . 'wpr_audit',
+		$wpdb->prefix . 'wpr_api_log',
+	];
+
+	foreach ( $tables as $table ) {
+		$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	// Delete plugin options
+	delete_option( 'wpr_settings' );
+	delete_option( 'wpr_db_version' );
+
+	// Clear any scheduled cron events
+	wp_clear_scheduled_hook( 'wpr_daily_republishing' );
+	wp_clear_scheduled_hook( 'wpr_daily_cleanup' );
+	wp_clear_scheduled_hook( 'wpr_retry_republishing' );
+
+	// Clean up any transients
+	delete_transient( 'wpr_republishing_lock' );
+
+	// Clear object cache if available
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+}
+
+wpr_uninstall_cleanup();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * The plugin bootstrap file
  *
@@ -10,13 +12,15 @@
  *
  * @link              https://www.paulramotowski.com
  * @since             1.0.0
- * @package           Rd_Post_Republishing
+ * @package           RD_Post_Republishing
  *
  * @wordpress-plugin
  * Plugin Name:       RD - Post Republishing
  * Plugin URI:        https://www.ramodesigns.co.uk
- * Description:       A Wordpress Post Republishing Tool for SEO Benefit
+ * Description:       A WordPress Post Republishing Tool for SEO Benefit
  * Version:           1.0.0
+ * Requires at least: 6.6
+ * Requires PHP:      8.2
  * Author:            Paul Ramotowski
  * Author URI:        https://www.paulramotowski.com/
  * License:           GPL-2.0+
@@ -25,44 +29,77 @@
  * Domain Path:       /languages
  */
 
+use WPR\Republisher\Core\Activator;
+use WPR\Republisher\Core\Deactivator;
+use WPR\Republisher\Core\Plugin;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
 /**
- * Currently plugin version.
+ * Plugin version constant.
  * Start at version 1.0.0 and use SemVer - https://semver.org
- * Rename this for your plugin and update it as you release new versions.
  */
 define( 'RD_POST_REPUBLISHING_VERSION', '1.0.0' );
 
 /**
- * The code that runs during plugin activation.
- * This action is documented in includes/class-rd-post-republishing-activator.php
+ * Plugin base path constant.
  */
-function activate_rd_post_republishing() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-rd-post-republishing-activator.php';
-	Rd_Post_Republishing_Activator::activate();
+define( 'RD_POST_REPUBLISHING_PATH', plugin_dir_path( __FILE__ ) );
+
+/**
+ * Plugin base URL constant.
+ */
+define( 'RD_POST_REPUBLISHING_URL', plugin_dir_url( __FILE__ ) );
+
+/**
+ * Load Composer autoloader if available.
+ */
+$autoloader = RD_POST_REPUBLISHING_PATH . 'vendor/autoload.php';
+if ( file_exists( $autoloader ) ) {
+	require_once $autoloader;
+} else {
+	// Fallback manual autoloader for development without Composer
+	spl_autoload_register( static function ( string $class ): void {
+		$prefix = 'WPR\\Republisher\\';
+		$base_dir = RD_POST_REPUBLISHING_PATH . 'includes/';
+
+		$len = strlen( $prefix );
+		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+			return;
+		}
+
+		$relative_class = substr( $class, $len );
+		$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
+
+		if ( file_exists( $file ) ) {
+			require_once $file;
+		}
+	} );
+}
+
+/**
+ * The code that runs during plugin activation.
+ *
+ * @since    1.0.0
+ */
+function activate_rd_post_republishing(): void {
+	Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-rd-post-republishing-deactivator.php
+ *
+ * @since    1.0.0
  */
-function deactivate_rd_post_republishing() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-rd-post-republishing-deactivator.php';
-	Rd_Post_Republishing_Deactivator::deactivate();
+function deactivate_rd_post_republishing(): void {
+	Deactivator::deactivate();
 }
 
 register_activation_hook( __FILE__, 'activate_rd_post_republishing' );
 register_deactivation_hook( __FILE__, 'deactivate_rd_post_republishing' );
-
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'includes/class-rd-post-republishing.php';
 
 /**
  * Begins execution of the plugin.
@@ -73,10 +110,9 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-rd-post-republishing.php';
  *
  * @since    1.0.0
  */
-function run_rd_post_republishing() {
-
-	$plugin = new Rd_Post_Republishing();
+function run_rd_post_republishing(): void {
+	$plugin = new Plugin();
 	$plugin->run();
-
 }
+
 run_rd_post_republishing();
