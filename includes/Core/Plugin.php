@@ -6,6 +6,8 @@ namespace WPR\Republisher\Core;
 
 use WPR\Republisher\Admin\Admin;
 use WPR\Republisher\Frontend\Frontend;
+use WPR\Republisher\Scheduler\Cron;
+use WPR\Republisher\Api\RestController;
 
 /**
  * The file that defines the core plugin class
@@ -78,6 +80,8 @@ class Plugin {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_scheduler_hooks();
+		$this->define_api_hooks();
 	}
 
 	/**
@@ -119,6 +123,26 @@ class Plugin {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+	}
+
+	/**
+	 * Register WP Cron scheduler hooks.
+	 *
+	 * @since    1.0.0
+	 */
+	private function define_scheduler_hooks(): void {
+		$scheduler = new Cron();
+		$scheduler->register_hooks();
+	}
+
+	/**
+	 * Register REST API hooks.
+	 *
+	 * @since    1.0.0
+	 */
+	private function define_api_hooks(): void {
+		$api_controller = new RestController();
+		$this->loader->add_action( 'rest_api_init', $api_controller, 'register_routes' );
 	}
 
 	/**
