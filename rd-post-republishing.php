@@ -33,6 +33,7 @@ use WPR\Republisher\Core\Activator;
 use WPR\Republisher\Core\Deactivator;
 use WPR\Republisher\Core\Plugin;
 use WPR\Republisher\CLI\Commands;
+use WPR\Republisher\Database\Migrator;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -115,6 +116,26 @@ register_activation_hook( __FILE__, 'activate_rd_post_republishing' );
 register_deactivation_hook( __FILE__, 'deactivate_rd_post_republishing' );
 
 /**
+ * Run database migrations if needed.
+ *
+ * This runs on every page load (but only performs work if migrations
+ * are actually needed) to ensure the database is up-to-date even
+ * when the plugin is updated via FTP or other methods that don't
+ * trigger the activation hook.
+ *
+ * @since    1.0.0
+ */
+function maybe_migrate_rd_post_republishing(): void {
+	// Only run migrations in admin or during cron
+	if ( ! is_admin() && ! wp_doing_cron() && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return;
+	}
+
+	$migrator = new Migrator();
+	$migrator->maybe_migrate();
+}
+
+/**
  * Begins execution of the plugin.
  *
  * Since everything within the plugin is registered via hooks,
@@ -124,6 +145,9 @@ register_deactivation_hook( __FILE__, 'deactivate_rd_post_republishing' );
  * @since    1.0.0
  */
 function run_rd_post_republishing(): void {
+	// Run migrations if needed (checks internally if necessary)
+	maybe_migrate_rd_post_republishing();
+
 	$plugin = new Plugin();
 	$plugin->run();
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WPR\Republisher\CLI;
 
+use WPR\Republisher\Database\Migrator;
 use WPR\Republisher\Database\Repository;
 use WPR\Republisher\Republisher\Engine;
 use WPR\Republisher\Republisher\Query;
@@ -426,6 +427,134 @@ class Commands {
 	}
 
 	/**
+	 * Show database migration status.
+	 *
+	 * Displays the current database version and any pending migrations.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--format=<format>]
+	 * : Output format. Options: table, json, yaml. Default: table.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Show database status
+	 *     $ wp wpr db status
+	 *
+	 * @when after_wp_load
+	 *
+	 * @param array<int, string>    $args       Positional arguments.
+	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 */
+	public function db_status( array $args, array $assoc_args ): void {
+		$format = Utils\get_flag_value( $assoc_args, 'format', 'table' );
+
+		$migrator = new Migrator();
+		$status = $migrator->get_status();
+
+		WP_CLI::log( WP_CLI::colorize( '%BDatabase Migration Status:%n' ) );
+
+		$data = [
+			[ 'Property' => 'Installed Version', 'Value' => $status['installed_version'] ],
+			[ 'Property' => 'Current Version', 'Value' => $status['current_version'] ],
+			[ 'Property' => 'Needs Migration', 'Value' => $status['needs_migration'] ? 'Yes' : 'No' ],
+			[ 'Property' => 'Pending Migrations', 'Value' => empty( $status['pending_migrations'] ) ? 'None' : implode( ', ', $status['pending_migrations'] ) ],
+		];
+
+		Utils\format_items( $format, $data, [ 'Property', 'Value' ] );
+
+		if ( $status['needs_migration'] ) {
+			WP_CLI::warning( 'Database migrations are pending. Run "wp wpr db migrate" to update.' );
+		} else {
+			WP_CLI::success( 'Database is up to date.' );
+		}
+	}
+
+	/**
+	 * Run pending database migrations.
+	 *
+	 * Updates the database schema to the current version.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--force]
+	 * : Force re-run all migrations from the beginning.
+	 *
+	 * [--yes]
+	 * : Skip confirmation prompt.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Run pending migrations
+	 *     $ wp wpr db migrate
+	 *
+	 *     # Force re-run all migrations
+	 *     $ wp wpr db migrate --force --yes
+	 *
+	 * @when after_wp_load
+	 *
+	 * @param array<int, string>    $args       Positional arguments.
+	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 */
+	public function db_migrate( array $args, array $assoc_args ): void {
+		$force = Utils\get_flag_value( $assoc_args, 'force', false );
+		$skip_confirm = Utils\get_flag_value( $assoc_args, 'yes', false );
+
+		$migrator = new Migrator();
+
+		if ( $force ) {
+			if ( ! $skip_confirm ) {
+				WP_CLI::confirm( 'This will reset and re-run all migrations. Are you sure?' );
+			}
+
+			WP_CLI::log( 'Forcing re-run of all migrations...' );
+			$result = $migrator->force_migrate_all();
+		} else {
+			$status = $migrator->get_status();
+
+			if ( ! $status['needs_migration'] ) {
+				WP_CLI::success( 'Database is already up to date.' );
+				return;
+			}
+
+			WP_CLI::log( sprintf(
+				'Migrating from version %s to %s...',
+				$status['installed_version'],
+				$status['current_version']
+			) );
+
+			$result = $migrator->maybe_migrate();
+		}
+
+		if ( ! $result['migrated'] ) {
+			WP_CLI::warning( 'No migrations were performed.' );
+			return;
+		}
+
+		// Report results
+		$successful = 0;
+		$failed = 0;
+
+		foreach ( $result['migrations_run'] as $version => $migration_result ) {
+			if ( $migration_result['success'] ) {
+				WP_CLI::log( sprintf( '  ✓ Migrated to %s', $version ) );
+				$successful++;
+			} else {
+				WP_CLI::warning( sprintf( '  ✗ Migration to %s failed: %s', $version, $migration_result['error'] ?? 'Unknown error' ) );
+				$failed++;
+			}
+		}
+
+		WP_CLI::log( '' );
+
+		if ( $failed > 0 ) {
+			WP_CLI::error( sprintf( 'Migration completed with errors. %d successful, %d failed.', $successful, $failed ) );
+		} else {
+			WP_CLI::success( sprintf( 'Database migrated successfully. %d migrations completed.', $successful ) );
+		}
+	}
+
+	/**
 	 * Display results in a formatted table.
 	 *
 	 * @param array<int, array<string, mixed>> $posts Results to display.
@@ -465,5 +594,7 @@ class Commands {
 		WP_CLI::add_command( 'wpr status', [ $instance, 'status' ] );
 		WP_CLI::add_command( 'wpr history', [ $instance, 'history' ] );
 		WP_CLI::add_command( 'wpr reschedule', [ $instance, 'reschedule' ] );
+		WP_CLI::add_command( 'wpr db status', [ $instance, 'db_status' ] );
+		WP_CLI::add_command( 'wpr db migrate', [ $instance, 'db_migrate' ] );
 	}
 }
