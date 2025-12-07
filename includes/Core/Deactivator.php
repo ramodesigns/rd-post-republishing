@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WPR\Republisher\Core;
 
+use WPR\Republisher\Scheduler\Cron;
+
 /**
  * Fired during plugin deactivation
  *
@@ -35,16 +37,30 @@ class Deactivator {
 	 */
 	public static function deactivate(): void {
 		self::clear_cron_events();
+		self::clear_transients();
 	}
 
 	/**
 	 * Clear all scheduled WP Cron events for this plugin.
 	 *
+	 * Uses the Cron class constants to ensure hook names are consistent.
+	 *
 	 * @since    1.0.0
 	 */
 	private static function clear_cron_events(): void {
-		wp_clear_scheduled_hook( 'wpr_daily_republishing' );
-		wp_clear_scheduled_hook( 'wpr_daily_cleanup' );
-		wp_clear_scheduled_hook( 'wpr_retry_republishing' );
+		$scheduler = new Cron();
+		$scheduler->unschedule_events();
+	}
+
+	/**
+	 * Clear plugin transients.
+	 *
+	 * Removes lock transients and cached data.
+	 *
+	 * @since    1.0.0
+	 */
+	private static function clear_transients(): void {
+		delete_transient( 'wpr_republishing_lock' );
+		delete_transient( 'wpr_settings_cache' );
 	}
 }

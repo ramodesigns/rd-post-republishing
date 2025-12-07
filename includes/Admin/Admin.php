@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WPR\Republisher\Admin;
 
+use WPR\Republisher\Database\Repository;
+use WPR\Republisher\Republisher\Engine;
+use WPR\Republisher\Republisher\Query;
+use WPR\Republisher\Scheduler\Cron;
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -129,6 +134,258 @@ class Admin {
 				'default'           => $this->get_default_settings(),
 			]
 		);
+	}
+
+	/**
+	 * Register AJAX handlers.
+	 *
+	 * @since    1.0.0
+	 */
+	public function register_ajax_handlers(): void {
+		add_action( 'wp_ajax_wpr_dry_run', [ $this, 'ajax_dry_run' ] );
+		add_action( 'wp_ajax_wpr_manual_trigger', [ $this, 'ajax_manual_trigger' ] );
+		add_action( 'wp_ajax_wpr_export_history', [ $this, 'ajax_export_history' ] );
+		add_action( 'wp_ajax_wpr_export_audit', [ $this, 'ajax_export_audit' ] );
+		add_action( 'wp_ajax_wpr_get_preview', [ $this, 'ajax_get_preview' ] );
+	}
+
+	/**
+	 * AJAX handler for dry-run simulation.
+	 *
+	 * @since    1.0.0
+	 */
+	public function ajax_dry_run(): void {
+		$this->verify_ajax_request();
+
+		$repository = new Repository();
+		$query = new Query( $repository );
+		$settings = $repository->get_settings();
+
+		// Get eligible posts for dry-run preview
+		$eligible_posts = $query->get_eligible_posts( $settings );
+		$quota = $query->calculate_quota( $settings );
+		$posts_to_republish = array_slice( $eligible_posts, 0, $quota );
+
+		$preview_data = [];
+		foreach ( $posts_to_republish as $post_id ) {
+			$post = get_post( $post_id );
+			if ( $post ) {
+				$preview_data[] = [
+					'id'           => $post_id,
+					'title'        => $post->post_title,
+					'current_date' => $post->post_date,
+					'edit_link'    => get_edit_post_link( $post_id, 'raw' ),
+					'view_link'    => get_permalink( $post_id ),
+				];
+			}
+		}
+
+		wp_send_json_success( [
+			'posts'       => $preview_data,
+			'total_count' => count( $eligible_posts ),
+			'quota'       => $quota,
+			'message'     => sprintf(
+				/* translators: %1$d: number of posts to republish, %2$d: total eligible posts */
+				__( 'Dry-run complete. %1$d of %2$d eligible posts would be republished.', 'rd-post-republishing' ),
+				count( $posts_to_republish ),
+				count( $eligible_posts )
+			),
+		] );
+	}
+
+	/**
+	 * AJAX handler for manual republishing trigger.
+	 *
+	 * @since    1.0.0
+	 */
+	public function ajax_manual_trigger(): void {
+		$this->verify_ajax_request();
+
+		$engine = new Engine();
+		$result = $engine->execute_batch( 'manual' );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( [
+				'republished' => $result['republished'],
+				'failed'      => $result['failed'],
+				'skipped'     => $result['skipped'],
+				'message'     => sprintf(
+					/* translators: %d: number of republished posts */
+					__( 'Successfully republished %d posts.', 'rd-post-republishing' ),
+					count( $result['republished'] )
+				),
+			] );
+		} else {
+			wp_send_json_error( [
+				'message' => $result['message'] ?? __( 'Republishing failed.', 'rd-post-republishing' ),
+			] );
+		}
+	}
+
+	/**
+	 * AJAX handler for exporting history to CSV.
+	 *
+	 * @since    1.0.0
+	 */
+	public function ajax_export_history(): void {
+		$this->verify_ajax_request();
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'wpr_history';
+
+		$results = $wpdb->get_results(
+			"SELECT * FROM {$table_name} ORDER BY republished_at DESC LIMIT 10000",
+			ARRAY_A
+		);
+
+		if ( empty( $results ) ) {
+			wp_send_json_error( [
+				'message' => __( 'No history records to export.', 'rd-post-republishing' ),
+			] );
+		}
+
+		$csv_data = $this->generate_csv( $results, [
+			'id'               => __( 'ID', 'rd-post-republishing' ),
+			'post_id'          => __( 'Post ID', 'rd-post-republishing' ),
+			'old_datetime'     => __( 'Old Date', 'rd-post-republishing' ),
+			'new_datetime'     => __( 'New Date', 'rd-post-republishing' ),
+			'triggered_by'     => __( 'Triggered By', 'rd-post-republishing' ),
+			'status'           => __( 'Status', 'rd-post-republishing' ),
+			'error_message'    => __( 'Error Message', 'rd-post-republishing' ),
+			'execution_time'   => __( 'Execution Time (ms)', 'rd-post-republishing' ),
+			'republished_at'   => __( 'Republished At', 'rd-post-republishing' ),
+		] );
+
+		wp_send_json_success( [
+			'csv'      => $csv_data,
+			'filename' => 'wpr-history-' . gmdate( 'Y-m-d' ) . '.csv',
+		] );
+	}
+
+	/**
+	 * AJAX handler for exporting audit log to CSV.
+	 *
+	 * @since    1.0.0
+	 */
+	public function ajax_export_audit(): void {
+		$this->verify_ajax_request();
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'wpr_audit';
+
+		$results = $wpdb->get_results(
+			"SELECT * FROM {$table_name} ORDER BY created_at DESC LIMIT 10000",
+			ARRAY_A
+		);
+
+		if ( empty( $results ) ) {
+			wp_send_json_error( [
+				'message' => __( 'No audit records to export.', 'rd-post-republishing' ),
+			] );
+		}
+
+		$csv_data = $this->generate_csv( $results, [
+			'id'            => __( 'ID', 'rd-post-republishing' ),
+			'event_type'    => __( 'Event Type', 'rd-post-republishing' ),
+			'event_details' => __( 'Details', 'rd-post-republishing' ),
+			'user_id'       => __( 'User ID', 'rd-post-republishing' ),
+			'ip_address'    => __( 'IP Address', 'rd-post-republishing' ),
+			'created_at'    => __( 'Created At', 'rd-post-republishing' ),
+		] );
+
+		wp_send_json_success( [
+			'csv'      => $csv_data,
+			'filename' => 'wpr-audit-' . gmdate( 'Y-m-d' ) . '.csv',
+		] );
+	}
+
+	/**
+	 * AJAX handler for getting preview posts.
+	 *
+	 * @since    1.0.0
+	 */
+	public function ajax_get_preview(): void {
+		$this->verify_ajax_request();
+
+		$repository = new Repository();
+		$query = new Query( $repository );
+		$settings = $repository->get_settings();
+
+		$eligible_posts = $query->get_eligible_posts( $settings );
+		$quota = $query->calculate_quota( $settings );
+
+		$preview_data = [];
+		$count = 0;
+		foreach ( $eligible_posts as $post_id ) {
+			if ( $count >= $quota ) {
+				break;
+			}
+			$post = get_post( $post_id );
+			if ( $post ) {
+				$preview_data[] = [
+					'id'           => $post_id,
+					'title'        => $post->post_title,
+					'current_date' => $post->post_date,
+					'categories'   => wp_get_post_categories( $post_id, [ 'fields' => 'names' ] ),
+				];
+				$count++;
+			}
+		}
+
+		wp_send_json_success( [
+			'posts'       => $preview_data,
+			'total_count' => count( $eligible_posts ),
+			'quota'       => $quota,
+		] );
+	}
+
+	/**
+	 * Verify AJAX request has valid nonce and capabilities.
+	 *
+	 * @since    1.0.0
+	 */
+	private function verify_ajax_request(): void {
+		if ( ! check_ajax_referer( 'wpr_admin_nonce', 'nonce', false ) ) {
+			wp_send_json_error( [
+				'message' => __( 'Security check failed.', 'rd-post-republishing' ),
+			], 403 );
+		}
+
+		if ( ! current_user_can( $this->get_required_capability() ) ) {
+			wp_send_json_error( [
+				'message' => __( 'You do not have permission to perform this action.', 'rd-post-republishing' ),
+			], 403 );
+		}
+	}
+
+	/**
+	 * Generate CSV content from data.
+	 *
+	 * @since    1.0.0
+	 * @param    array<int, array<string, mixed>>  $data     The data rows.
+	 * @param    array<string, string>             $headers  Column key => header label mapping.
+	 * @return   string
+	 */
+	private function generate_csv( array $data, array $headers ): string {
+		$output = fopen( 'php://temp', 'r+' );
+
+		// Write header row
+		fputcsv( $output, array_values( $headers ) );
+
+		// Write data rows
+		foreach ( $data as $row ) {
+			$csv_row = [];
+			foreach ( array_keys( $headers ) as $key ) {
+				$csv_row[] = $row[ $key ] ?? '';
+			}
+			fputcsv( $output, $csv_row );
+		}
+
+		rewind( $output );
+		$csv_content = stream_get_contents( $output );
+		fclose( $output );
+
+		return $csv_content;
 	}
 
 	/**

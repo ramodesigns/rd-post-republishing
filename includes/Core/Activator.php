@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WPR\Republisher\Core;
 
+use WPR\Republisher\Scheduler\Cron;
+
 /**
  * Fired during plugin activation
  *
@@ -37,6 +39,9 @@ class Activator {
 		self::create_database_tables();
 		self::set_default_options();
 		self::schedule_cron_events();
+
+		// Flush rewrite rules for REST API
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -141,15 +146,13 @@ class Activator {
 	/**
 	 * Schedule WP Cron events.
 	 *
+	 * Uses the Cron class to schedule events at the configured times
+	 * rather than scheduling immediately.
+	 *
 	 * @since    1.0.0
 	 */
 	private static function schedule_cron_events(): void {
-		if ( ! wp_next_scheduled( 'wpr_daily_republishing' ) ) {
-			wp_schedule_event( time(), 'daily', 'wpr_daily_republishing' );
-		}
-
-		if ( ! wp_next_scheduled( 'wpr_daily_cleanup' ) ) {
-			wp_schedule_event( time(), 'daily', 'wpr_daily_cleanup' );
-		}
+		$scheduler = new Cron();
+		$scheduler->schedule_events();
 	}
 }
