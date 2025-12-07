@@ -633,7 +633,9 @@ class Admin {
 	}
 
 	/**
-	 * Sanitize plugin settings.
+	 * Sanitize and validate plugin settings.
+	 *
+	 * Sanitizes input values and adds validation error messages for invalid data.
 	 *
 	 * @since    1.0.0
 	 * @param    array<string, mixed>  $input  The settings to sanitize.
@@ -641,44 +643,264 @@ class Admin {
 	 */
 	public function sanitize_settings( array $input ): array {
 		$sanitized = [];
+		$defaults = $this->get_default_settings();
 
-		// Post types - validate against registered post types
+		// === Post Types Validation ===
 		$valid_post_types = get_post_types( [ 'public' => true ], 'names' );
+		$requested_types = (array) ( $input['enabled_post_types'] ?? [] );
 		$sanitized['enabled_post_types'] = array_filter(
-			array_map( 'sanitize_text_field', (array) ( $input['enabled_post_types'] ?? [] ) ),
+			array_map( 'sanitize_text_field', $requested_types ),
 			fn( string $type ): bool => isset( $valid_post_types[ $type ] )
 		);
 
-		// Quota type
+		// Warn if no post types selected
+		if ( empty( $sanitized['enabled_post_types'] ) ) {
+			add_settings_error(
+				'wpr_settings',
+				'no_post_types',
+				__( 'No post types selected. Please select at least one post type for republishing.', 'rd-post-republishing' ),
+				'error'
+			);
+			$sanitized['enabled_post_types'] = $defaults['enabled_post_types'];
+		}
+
+		// Warn if invalid post types were submitted
+		$invalid_types = array_diff( $requested_types, array_keys( $valid_post_types ) );
+		if ( ! empty( $invalid_types ) ) {
+			add_settings_error(
+				'wpr_settings',
+				'invalid_post_types',
+				sprintf(
+					/* translators: %s: comma-separated list of invalid post type names */
+					__( 'Invalid post types removed: %s', 'rd-post-republishing' ),
+					implode( ', ', $invalid_types )
+				),
+				'warning'
+			);
+		}
+
+		// === Quota Type Validation ===
 		$sanitized['daily_quota_type'] = in_array( $input['daily_quota_type'] ?? '', [ 'number', 'percentage' ], true )
 			? $input['daily_quota_type']
 			: 'number';
 
-		// Quota value (1-50 for number, 1-100 for percentage, capped at 50 posts)
-		$quota_value = absint( $input['daily_quota_value'] ?? 5 );
-		$sanitized['daily_quota_value'] = min( max( $quota_value, 1 ), 50 );
+		// === Quota Value Validation ===
+		$raw_quota = $input['daily_quota_value'] ?? $defaults['daily_quota_value'];
+		$quota_value = absint( $raw_quota );
 
-		// Time range (0-23)
-		$sanitized['republish_start_hour'] = min( max( absint( $input['republish_start_hour'] ?? 9 ), 0 ), 23 );
-		$sanitized['republish_end_hour'] = min( max( absint( $input['republish_end_hour'] ?? 17 ), 0 ), 23 );
+		if ( $quota_value < 1 ) {
+			add_settings_error(
+				'wpr_settings',
+				'quota_too_low',
+				__( 'Daily quota must be at least 1. Value has been corrected.', 'rd-post-republishing' ),
+				'warning'
+			);
+			$quota_value = 1;
+		}
 
-		// Minimum age (7-180 days)
-		$sanitized['minimum_age_days'] = min( max( absint( $input['minimum_age_days'] ?? 30 ), 7 ), 180 );
+		if ( $quota_value > 50 ) {
+			add_settings_error(
+				'wpr_settings',
+				'quota_too_high',
+				sprintf(
+					/* translators: %d: the value that was submitted */
+					__( 'Daily quota cannot exceed 50 posts per day. Your value of %d has been reduced to 50.', 'rd-post-republishing' ),
+					absint( $raw_quota )
+				),
+				'warning'
+			);
+			$quota_value = 50;
+		}
 
-		// Boolean options
+		$sanitized['daily_quota_value'] = $quota_value;
+
+		// === Time Range Validation ===
+		$start_hour = absint( $input['republish_start_hour'] ?? $defaults['republish_start_hour'] );
+		$end_hour = absint( $input['republish_end_hour'] ?? $defaults['republish_end_hour'] );
+
+		// Validate hour range (0-23)
+		if ( $start_hour > 23 ) {
+			add_settings_error(
+				'wpr_settings',
+				'invalid_start_hour',
+				__( 'Start hour must be between 0 and 23. Value has been corrected.', 'rd-post-republishing' ),
+				'warning'
+			);
+			$start_hour = min( $start_hour, 23 );
+		}
+
+		if ( $end_hour > 23 ) {
+			add_settings_error(
+				'wpr_settings',
+				'invalid_end_hour',
+				__( 'End hour must be between 0 and 23. Value has been corrected.', 'rd-post-republishing' ),
+				'warning'
+			);
+			$end_hour = min( $end_hour, 23 );
+		}
+
+		// Warn if start hour is after end hour (unusual but allowed for overnight ranges)
+		if ( $start_hour > $end_hour ) {
+			add_settings_error(
+				'wpr_settings',
+				'time_range_inverted',
+				sprintf(
+					/* translators: %1$d: start hour, %2$d: end hour */
+					__( 'Note: Start hour (%1$d:00) is after end hour (%2$d:00). This creates an overnight publishing window.', 'rd-post-republishing' ),
+					$start_hour,
+					$end_hour
+				),
+				'info'
+			);
+		}
+
+		$sanitized['republish_start_hour'] = $start_hour;
+		$sanitized['republish_end_hour'] = $end_hour;
+
+		// === Minimum Age Validation ===
+		$raw_age = $input['minimum_age_days'] ?? $defaults['minimum_age_days'];
+		$age_days = absint( $raw_age );
+
+		if ( $age_days < 7 ) {
+			add_settings_error(
+				'wpr_settings',
+				'age_too_low',
+				__( 'Minimum post age must be at least 7 days. Value has been corrected.', 'rd-post-republishing' ),
+				'warning'
+			);
+			$age_days = 7;
+		}
+
+		if ( $age_days > 180 ) {
+			add_settings_error(
+				'wpr_settings',
+				'age_too_high',
+				sprintf(
+					/* translators: %d: the value that was submitted */
+					__( 'Minimum post age cannot exceed 180 days. Your value of %d has been reduced to 180.', 'rd-post-republishing' ),
+					absint( $raw_age )
+				),
+				'warning'
+			);
+			$age_days = 180;
+		}
+
+		$sanitized['minimum_age_days'] = $age_days;
+
+		// === Boolean Options ===
 		$sanitized['maintain_chronological_order'] = ! empty( $input['maintain_chronological_order'] );
 		$sanitized['wp_cron_enabled'] = ! empty( $input['wp_cron_enabled'] );
 		$sanitized['debug_mode'] = ! empty( $input['debug_mode'] );
 		$sanitized['dry_run_mode'] = ! empty( $input['dry_run_mode'] );
 
-		// Category filter
-		$sanitized['category_filter_type'] = in_array( $input['category_filter_type'] ?? '', [ 'none', 'whitelist', 'blacklist' ], true )
-			? $input['category_filter_type']
-			: 'none';
-		$sanitized['category_filter_ids'] = array_map( 'absint', (array) ( $input['category_filter_ids'] ?? [] ) );
+		// Warn about debug mode in production
+		if ( $sanitized['debug_mode'] && ! defined( 'WP_DEBUG' ) ) {
+			add_settings_error(
+				'wpr_settings',
+				'debug_without_wp_debug',
+				__( 'Debug mode is enabled, but WP_DEBUG is not defined. Logs will only appear if WP_DEBUG_LOG is also enabled.', 'rd-post-republishing' ),
+				'info'
+			);
+		}
 
-		// API rate limit (minimum 1 second for testing, default 86400 = 1 day)
-		$sanitized['api_rate_limit_seconds'] = max( absint( $input['api_rate_limit_seconds'] ?? 86400 ), 1 );
+		// Warn about dry-run mode being active
+		if ( $sanitized['dry_run_mode'] ) {
+			add_settings_error(
+				'wpr_settings',
+				'dry_run_active',
+				__( 'Dry-run mode is active. Posts will NOT actually be republished until this is disabled.', 'rd-post-republishing' ),
+				'info'
+			);
+		}
+
+		// === Category Filter Validation ===
+		$filter_type = $input['category_filter_type'] ?? 'none';
+		$sanitized['category_filter_type'] = in_array( $filter_type, [ 'none', 'whitelist', 'blacklist' ], true )
+			? $filter_type
+			: 'none';
+
+		$category_ids = array_filter( array_map( 'absint', (array) ( $input['category_filter_ids'] ?? [] ) ) );
+		$sanitized['category_filter_ids'] = $category_ids;
+
+		// Warn if filter type selected but no categories chosen
+		if ( in_array( $sanitized['category_filter_type'], [ 'whitelist', 'blacklist' ], true ) && empty( $category_ids ) ) {
+			$filter_label = 'whitelist' === $sanitized['category_filter_type']
+				? __( 'whitelist', 'rd-post-republishing' )
+				: __( 'blacklist', 'rd-post-republishing' );
+
+			add_settings_error(
+				'wpr_settings',
+				'no_categories_selected',
+				sprintf(
+					/* translators: %s: filter type (whitelist/blacklist) */
+					__( 'Category %s is enabled but no categories are selected. All posts will be affected.', 'rd-post-republishing' ),
+					$filter_label
+				),
+				'warning'
+			);
+		}
+
+		// Validate category IDs exist
+		if ( ! empty( $category_ids ) ) {
+			$existing_cats = get_terms( [
+				'taxonomy'   => 'category',
+				'hide_empty' => false,
+				'include'    => $category_ids,
+				'fields'     => 'ids',
+			] );
+
+			if ( ! is_wp_error( $existing_cats ) ) {
+				$invalid_cats = array_diff( $category_ids, $existing_cats );
+				if ( ! empty( $invalid_cats ) ) {
+					add_settings_error(
+						'wpr_settings',
+						'invalid_categories',
+						sprintf(
+							/* translators: %s: comma-separated list of invalid category IDs */
+							__( 'Invalid category IDs removed: %s', 'rd-post-republishing' ),
+							implode( ', ', $invalid_cats )
+						),
+						'warning'
+					);
+					$sanitized['category_filter_ids'] = array_intersect( $category_ids, $existing_cats );
+				}
+			}
+		}
+
+		// === API Rate Limit Validation ===
+		$raw_rate_limit = $input['api_rate_limit_seconds'] ?? $defaults['api_rate_limit_seconds'];
+		$rate_limit = absint( $raw_rate_limit );
+
+		if ( $rate_limit < 60 && $rate_limit !== 1 ) {
+			add_settings_error(
+				'wpr_settings',
+				'rate_limit_low',
+				__( 'API rate limit below 60 seconds may cause excessive server load. Consider increasing this value.', 'rd-post-republishing' ),
+				'warning'
+			);
+		}
+
+		$sanitized['api_rate_limit_seconds'] = max( $rate_limit, 1 );
+
+		// === Success Message ===
+		// Only show success if there were no errors
+		$errors = get_settings_errors( 'wpr_settings' );
+		$has_errors = false;
+		foreach ( $errors as $error ) {
+			if ( 'error' === $error['type'] ) {
+				$has_errors = true;
+				break;
+			}
+		}
+
+		if ( ! $has_errors ) {
+			add_settings_error(
+				'wpr_settings',
+				'settings_saved',
+				__( 'Settings saved successfully.', 'rd-post-republishing' ),
+				'success'
+			);
+		}
 
 		return $sanitized;
 	}

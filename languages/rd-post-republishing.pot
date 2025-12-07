@@ -642,3 +642,77 @@ msgstr ""
 #: includes/Admin/Admin.php
 msgid "<strong>Alternate Cron Active:</strong> WordPress is using alternate cron mode. Scheduled republishing may be slightly delayed as it relies on site visits to trigger cron jobs."
 msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "No post types selected. Please select at least one post type for republishing."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: comma-separated list of invalid post type names
+msgid "Invalid post types removed: %s"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Daily quota must be at least 1. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %d: the value that was submitted
+msgid "Daily quota cannot exceed 50 posts per day. Your value of %d has been reduced to 50."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Start hour must be between 0 and 23. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "End hour must be between 0 and 23. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$d: start hour, %2$d: end hour
+msgid "Note: Start hour (%1$d:00) is after end hour (%2$d:00). This creates an overnight publishing window."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Minimum post age must be at least 7 days. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %d: the value that was submitted
+msgid "Minimum post age cannot exceed 180 days. Your value of %d has been reduced to 180."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Debug mode is enabled, but WP_DEBUG is not defined. Logs will only appear if WP_DEBUG_LOG is also enabled."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Dry-run mode is active. Posts will NOT actually be republished until this is disabled."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "whitelist"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "blacklist"
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: filter type (whitelist/blacklist)
+msgid "Category %s is enabled but no categories are selected. All posts will be affected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: comma-separated list of invalid category IDs
+msgid "Invalid category IDs removed: %s"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "API rate limit below 60 seconds may cause excessive server load. Consider increasing this value."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Settings saved successfully."
+msgstr ""
