@@ -1,0 +1,84 @@
+ Coding & Packaging Conventions
+Plugin Slug & Header Block • Slug: wp-post-republisher
+• Text-domain: wp-post-republisher (matches .pot file)
+• Stable tag / semantic versioning (1.0.0, 1.1.0, …).
+Namespace / Prefix • PHP namespace root: WPR\Republisher
+• Hook and filter prefix: wpr_.
+• Custom DB tables: {$wpdb->prefix}wpr_….
+Standards • WordPress Coding Standards + PSR-12; PHP 8.2 declare(strict_types=1);.
+• WPCS lint passes at phpcs --standard=WordPress.
+Autoload • Composer with PSR-4 autoload ("WPR\\Republisher\\": "includes/").
+• vendor/autoload.php guarded with file_exists.
+2. Internationalization (i18n)
+• Wrap all UI strings with __( …, 'wp-post-republisher' ).
+• Provide starter languages/wp-post-republisher.pot.
+• Store date/time displays via wp_date() to respect site timezone & locale.
+
+3. Security Hardening
+• Implement capability filter: apply_filters( 'wpr_required_cap', 'manage_options' ).
+• Escape all output via esc_html, esc_attr, wp_kses_post.
+• Use wp_nonce_field( 'wpr_settings' ) in every form and verify with check_admin_referer.
+• REST: use WP_REST_Server::CREATABLE, disable force param unless debug_mode true.
+• Add simple mutex/lock in options or transients to prevent concurrent cron/API overlaps.
+
+4. Time & Cron Edge-Cases
+• Always calculate in site timezone:
+
+$tz = wp_timezone();            // DateTimeZone  
+$now = new DateTimeImmutable( 'now', $tz );
+• Daylight-saving jumps: generate random hour first, then set minute/second.
+• Provide alternate Cron constant detection (DISABLE_WP_CRON, ALTERNATE_WP_CRON).
+• do_action_deprecated() when changing hook names in future versions.
+
+5. UI / UX Guidelines
+• Build settings with the Settings API (sections, fields, validation callback).
+• Use WordPress components (WP 6.x React controls) or Dashicons; avoid heavy frameworks.
+• Accessibility: labels on all inputs, role="status" for AJAX spinners.
+• Table screens: paginate at 50 rows, AJAX search/filter for large histories.
+
+6. Logging & Debug
+• Store logs in custom tables and mirror critical events to error_log() when WP_DEBUG_LOG true.
+• Add WP-CLI commands:
+
+wp wpr republish run          # runs today’s batch
+wp wpr republish dry-run      # shows forecast
+wp wpr republish cleanup      # forces 365-day purge
+7. Automated Tests / CI
+• PHPUnit 10 with Brain Monkey for hooks.
+• Mock database with WordPress WP_UnitTestCase.
+• GitHub Actions sample workflow: static analysis (PHPStan lvl 8) + PHPCS + PHPUnit.
+
+8. Update & Migration Strategy
+• update_option( 'wpr_db_version', '1.0.0' ); on activation.
+• On updates, compare stored version and run incremental migrations (e.g., new columns).
+• Use dbDelta() for safe schema changes.
+
+9. Performance Considerations
+• Read settings once and cache in a class property or a wp_cache_set entry (group wpr_settings).
+• Use LIMIT queries with covering indexes (post_date, post_status, post_type).
+• Batch history inserts with $wpdb->insert in a loop wrapped by wpdb->query('START TRANSACTION').
+
+10. Example Configuration Payloads
+A. Settings Option (JSON excerpt)
+
+{
+  "enabled_post_types": ["post", "reviews"],
+  "daily_quota_type": "percentage",
+  "daily_quota_value": 10,
+  "republish_start_hour": 9,
+  "republish_end_hour": 17,
+  "minimum_age_days": 30,
+  "maintain_chronological_order": true
+}
+B. API Success (debug off)
+
+{ "success": true }
+C. API Success (debug on)
+
+{
+  "success": true,
+  "posts": [
+    { "ID": 123, "old_date": "2024-01-01 08:30:00", "new_date": "2025-03-14 09:12:44" },
+    ...
+  ]
+}
