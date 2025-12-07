@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WPR\Republisher\Republisher;
 
 use WPR\Republisher\Database\Repository;
+use WPR\Republisher\Republisher\Cache;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -63,17 +64,26 @@ class Engine {
 	private DateTimeZone $timezone;
 
 	/**
+	 * Cache handler instance.
+	 *
+	 * @since    1.0.0
+	 */
+	private Cache $cache;
+
+	/**
 	 * Initialize the engine.
 	 *
 	 * @since    1.0.0
 	 * @param    Repository|null  $repository  Optional repository instance.
 	 * @param    Query|null       $query       Optional query instance.
+	 * @param    Cache|null       $cache       Optional cache instance.
 	 */
-	public function __construct( ?Repository $repository = null, ?Query $query = null ) {
+	public function __construct( ?Repository $repository = null, ?Query $query = null, ?Cache $cache = null ) {
 		global $wpdb;
 		$this->wpdb = $wpdb;
 		$this->repository = $repository ?? new Repository();
 		$this->query = $query ?? new Query( $this->repository );
+		$this->cache = $cache ?? new Cache();
 		$this->timezone = wp_timezone();
 	}
 
@@ -472,91 +482,14 @@ class Engine {
 	/**
 	 * Clear all caches related to a post.
 	 *
-	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
-	 */
-	private function clear_post_caches( int $post_id ): void {
-		// WordPress core cache
-		clean_post_cache( $post_id );
-		wp_cache_delete( $post_id, 'posts' );
-		wp_cache_delete( $post_id, 'post_meta' );
-
-		// Clear related caches
-		$post = get_post( $post_id );
-		if ( $post ) {
-			// Clear author cache
-			clean_post_cache( $post_id );
-
-			// Clear taxonomy caches
-			$taxonomies = get_object_taxonomies( $post->post_type );
-			foreach ( $taxonomies as $taxonomy ) {
-				wp_cache_delete( $post_id, "{$taxonomy}_relationships" );
-			}
-		}
-
-		// Third-party cache plugin support
-		$this->clear_third_party_caches( $post_id );
-
-		/**
-		 * Fires after post caches are cleared.
-		 *
-		 * Allows themes and plugins to clear their own caches.
-		 *
-		 * @since 1.0.0
-		 * @param int $post_id The post ID.
-		 */
-		do_action( 'wpr_clear_post_cache', $post_id );
-	}
-
-	/**
-	 * Clear third-party caching plugin caches.
+	 * Uses the dedicated Cache class for comprehensive cache clearing
+	 * including WordPress core and third-party plugin caches.
 	 *
 	 * @since    1.0.0
 	 * @param    int  $post_id  The post ID.
 	 */
-	private function clear_third_party_caches( int $post_id ): void {
-		// WP Rocket
-		if ( function_exists( 'rocket_clean_post' ) ) {
-			rocket_clean_post( $post_id );
-		}
-
-		// W3 Total Cache
-		if ( function_exists( 'w3tc_pgcache_flush_post' ) ) {
-			w3tc_pgcache_flush_post( $post_id );
-		}
-
-		// WP Super Cache
-		if ( function_exists( 'wp_cache_post_change' ) ) {
-			wp_cache_post_change( $post_id );
-		}
-
-		// LiteSpeed Cache
-		if ( class_exists( 'LiteSpeed_Cache_API' ) && method_exists( 'LiteSpeed_Cache_API', 'purge_post' ) ) {
-			\LiteSpeed_Cache_API::purge_post( $post_id );
-		}
-
-		// WP Fastest Cache
-		if ( function_exists( 'wpfc_clear_post_cache_by_id' ) ) {
-			wpfc_clear_post_cache_by_id( $post_id );
-		}
-
-		// Autoptimize
-		if ( class_exists( 'autoptimizeCache' ) && method_exists( 'autoptimizeCache', 'clearall' ) ) {
-			// Only clear if post has been significantly changed
-			// Note: This is aggressive; consider if needed
-		}
-
-		// Cache Enabler
-		if ( class_exists( 'Cache_Enabler' ) && method_exists( 'Cache_Enabler', 'clear_page_cache_by_post_id' ) ) {
-			\Cache_Enabler::clear_page_cache_by_post_id( $post_id );
-		}
-
-		// Nginx Helper (for Nginx FastCGI cache)
-		if ( class_exists( 'Jeena\\Jeena_Starter\\FastCGI_Cache' ) ) {
-			// Implementation varies by setup
-		}
-
-		// Redis Object Cache - object cache is already handled by clean_post_cache()
+	private function clear_post_caches( int $post_id ): void {
+		$this->cache->clear_post_cache( $post_id );
 	}
 
 	/**
