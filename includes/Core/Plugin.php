@@ -113,6 +113,9 @@ class Plugin {
 
 		// Register AJAX handlers
 		$plugin_admin->register_ajax_handlers();
+
+		// Register audit logging hooks for settings changes
+		$plugin_admin->register_audit_hooks();
 	}
 
 	/**

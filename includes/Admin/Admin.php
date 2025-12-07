@@ -150,6 +150,105 @@ class Admin {
 	}
 
 	/**
+	 * Register audit logging hooks.
+	 *
+	 * @since    1.0.0
+	 */
+	public function register_audit_hooks(): void {
+		add_action( 'update_option_wpr_settings', [ $this, 'log_settings_change' ], 10, 2 );
+		add_action( 'add_option_wpr_settings', [ $this, 'log_settings_added' ], 10, 2 );
+	}
+
+	/**
+	 * Log settings changes to audit trail.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed  $old_value  The old option value.
+	 * @param    mixed  $new_value  The new option value.
+	 */
+	public function log_settings_change( mixed $old_value, mixed $new_value ): void {
+		// Don't log if values are the same
+		if ( $old_value === $new_value ) {
+			return;
+		}
+
+		$repository = new Repository();
+
+		// Find what changed
+		$changes = $this->get_settings_diff( $old_value, $new_value );
+
+		if ( empty( $changes ) ) {
+			return;
+		}
+
+		// Log individual changes for better audit trail
+		foreach ( $changes as $key => $change ) {
+			$repository->log_audit(
+				'setting_changed',
+				$key,
+				is_array( $change['old'] ) ? wp_json_encode( $change['old'] ) : (string) $change['old'],
+				is_array( $change['new'] ) ? wp_json_encode( $change['new'] ) : (string) $change['new']
+			);
+		}
+
+		// Also log the full settings update as a single record
+		$repository->log_audit(
+			'settings_updated',
+			null,
+			wp_json_encode( $old_value ),
+			wp_json_encode( $new_value )
+		);
+	}
+
+	/**
+	 * Log when settings are first added.
+	 *
+	 * @since    1.0.0
+	 * @param    string  $option  The option name.
+	 * @param    mixed   $value   The option value.
+	 */
+	public function log_settings_added( string $option, mixed $value ): void {
+		$repository = new Repository();
+		$repository->log_audit(
+			'settings_created',
+			null,
+			null,
+			wp_json_encode( $value )
+		);
+	}
+
+	/**
+	 * Get the differences between old and new settings.
+	 *
+	 * @since    1.0.0
+	 * @param    mixed  $old_value  The old settings array.
+	 * @param    mixed  $new_value  The new settings array.
+	 * @return   array<string, array<string, mixed>>  Array of changed settings.
+	 */
+	private function get_settings_diff( mixed $old_value, mixed $new_value ): array {
+		if ( ! is_array( $old_value ) || ! is_array( $new_value ) ) {
+			return [];
+		}
+
+		$changes = [];
+		$all_keys = array_unique( array_merge( array_keys( $old_value ), array_keys( $new_value ) ) );
+
+		foreach ( $all_keys as $key ) {
+			$old = $old_value[ $key ] ?? null;
+			$new = $new_value[ $key ] ?? null;
+
+			if ( $old !== $new ) {
+				$changes[ $key ] = [
+					'old' => $old,
+					'new' => $new,
+				];
+			}
+		}
+
+		return $changes;
+	}
+
+	/**
 	 * AJAX handler for dry-run simulation.
 	 *
 	 * @since    1.0.0
