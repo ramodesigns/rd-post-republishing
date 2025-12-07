@@ -26,17 +26,21 @@ $repository = new Repository();
 // Get filter parameters
 $log_type = isset( $_GET['log_type'] ) ? sanitize_text_field( wp_unslash( $_GET['log_type'] ) ) : 'history';
 $status_filter = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : '';
+$post_type_filter = isset( $_GET['post_type'] ) ? sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) : '';
+$trigger_filter = isset( $_GET['trigger'] ) ? sanitize_text_field( wp_unslash( $_GET['trigger'] ) ) : '';
 $current_page = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 $per_page = 50;
 $offset = ( $current_page - 1 ) * $per_page;
 
 // Get data based on log type
 if ( 'audit' === $log_type ) {
+	$audit_action_filter = isset( $_GET['action_type'] ) ? sanitize_text_field( wp_unslash( $_GET['action_type'] ) ) : '';
 	$records = $repository->get_audit_logs( [
+		'action' => $audit_action_filter ?: null,
 		'limit'  => $per_page,
 		'offset' => $offset,
 	] );
-	$total_records = count( $repository->get_audit_logs( [ 'limit' => 10000 ] ) ); // Simplified count
+	$total_records = $repository->get_audit_count( $audit_action_filter ? [ 'action' => $audit_action_filter ] : [] );
 } else {
 	$filter_args = [
 		'limit'  => $per_page,
@@ -45,19 +49,31 @@ if ( 'audit' === $log_type ) {
 	if ( $status_filter ) {
 		$filter_args['status'] = $status_filter;
 	}
+	if ( $post_type_filter ) {
+		$filter_args['post_type'] = $post_type_filter;
+	}
 	$records = $repository->get_history( $filter_args );
-	$total_records = $repository->get_history_count( $status_filter ? [ 'status' => $status_filter ] : [] );
+	$total_records = $repository->get_history_count( array_filter( [
+		'status'    => $status_filter ?: null,
+		'post_type' => $post_type_filter ?: null,
+	] ) );
 }
 
-$total_pages = ceil( $total_records / $per_page );
+$total_pages = (int) ceil( $total_records / $per_page );
 
 // Build base URL for pagination
-$base_url = add_query_arg( [
-	'page'     => 'rd-post-republishing',
-	'tab'      => 'logs',
-	'log_type' => $log_type,
-	'status'   => $status_filter,
-], admin_url( 'options-general.php' ) );
+$base_url = add_query_arg( array_filter( [
+	'page'        => 'rd-post-republishing',
+	'tab'         => 'logs',
+	'log_type'    => $log_type,
+	'status'      => $status_filter,
+	'post_type'   => $post_type_filter,
+	'action_type' => $audit_action_filter ?? '',
+] ), admin_url( 'options-general.php' ) );
+
+// Get available post types for filter
+$settings = $repository->get_settings();
+$enabled_post_types = $settings['enabled_post_types'] ?? [ 'post' ];
 ?>
 
 <div class="wpr-logs">
@@ -76,30 +92,43 @@ $base_url = add_query_arg( [
 	<?php if ( 'history' === $log_type ) : ?>
 		<!-- History Filters -->
 		<div class="wpr-logs-filters">
-			<form method="get" action="">
+			<form method="get" action="" class="wpr-filter-form">
 				<input type="hidden" name="page" value="rd-post-republishing">
 				<input type="hidden" name="tab" value="logs">
 				<input type="hidden" name="log_type" value="history">
 
 				<label for="wpr-status-filter"><?php esc_html_e( 'Status:', 'rd-post-republishing' ); ?></label>
 				<select name="status" id="wpr-status-filter">
-					<option value=""><?php esc_html_e( 'All', 'rd-post-republishing' ); ?></option>
+					<option value=""><?php esc_html_e( 'All Statuses', 'rd-post-republishing' ); ?></option>
 					<option value="success" <?php selected( $status_filter, 'success' ); ?>><?php esc_html_e( 'Success', 'rd-post-republishing' ); ?></option>
 					<option value="failed" <?php selected( $status_filter, 'failed' ); ?>><?php esc_html_e( 'Failed', 'rd-post-republishing' ); ?></option>
 					<option value="retrying" <?php selected( $status_filter, 'retrying' ); ?>><?php esc_html_e( 'Retrying', 'rd-post-republishing' ); ?></option>
 				</select>
 
+				<label for="wpr-post-type-filter"><?php esc_html_e( 'Post Type:', 'rd-post-republishing' ); ?></label>
+				<select name="post_type" id="wpr-post-type-filter">
+					<option value=""><?php esc_html_e( 'All Types', 'rd-post-republishing' ); ?></option>
+					<?php foreach ( $enabled_post_types as $pt ) : ?>
+						<?php $pt_obj = get_post_type_object( $pt ); ?>
+						<?php if ( $pt_obj ) : ?>
+							<option value="<?php echo esc_attr( $pt ); ?>" <?php selected( $post_type_filter, $pt ); ?>>
+								<?php echo esc_html( $pt_obj->labels->singular_name ); ?>
+							</option>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				</select>
+
 				<button type="submit" class="button"><?php esc_html_e( 'Filter', 'rd-post-republishing' ); ?></button>
 
-				<?php if ( $status_filter ) : ?>
-					<a href="<?php echo esc_url( remove_query_arg( [ 'status', 'paged' ] ) ); ?>" class="button">
-						<?php esc_html_e( 'Clear', 'rd-post-republishing' ); ?>
+				<?php if ( $status_filter || $post_type_filter ) : ?>
+					<a href="<?php echo esc_url( remove_query_arg( [ 'status', 'post_type', 'paged' ] ) ); ?>" class="button">
+						<?php esc_html_e( 'Clear Filters', 'rd-post-republishing' ); ?>
 					</a>
 				<?php endif; ?>
 			</form>
 
 			<div class="wpr-export-buttons">
-				<button type="button" class="button" id="wpr-export-history">
+				<button type="button" class="button wpr-export-history-btn">
 					<span class="dashicons dashicons-download"></span>
 					<?php esc_html_e( 'Export CSV', 'rd-post-republishing' ); ?>
 				</button>
@@ -171,8 +200,30 @@ $base_url = add_query_arg( [
 	<?php else : ?>
 		<!-- Audit Log Table -->
 		<div class="wpr-logs-filters">
+			<form method="get" action="" class="wpr-filter-form">
+				<input type="hidden" name="page" value="rd-post-republishing">
+				<input type="hidden" name="tab" value="logs">
+				<input type="hidden" name="log_type" value="audit">
+
+				<label for="wpr-action-type-filter"><?php esc_html_e( 'Action:', 'rd-post-republishing' ); ?></label>
+				<select name="action_type" id="wpr-action-type-filter">
+					<option value=""><?php esc_html_e( 'All Actions', 'rd-post-republishing' ); ?></option>
+					<option value="settings_updated" <?php selected( $audit_action_filter ?? '', 'settings_updated' ); ?>><?php esc_html_e( 'Settings Updated', 'rd-post-republishing' ); ?></option>
+					<option value="setting_changed" <?php selected( $audit_action_filter ?? '', 'setting_changed' ); ?>><?php esc_html_e( 'Setting Changed', 'rd-post-republishing' ); ?></option>
+					<option value="settings_created" <?php selected( $audit_action_filter ?? '', 'settings_created' ); ?>><?php esc_html_e( 'Settings Created', 'rd-post-republishing' ); ?></option>
+				</select>
+
+				<button type="submit" class="button"><?php esc_html_e( 'Filter', 'rd-post-republishing' ); ?></button>
+
+				<?php if ( ! empty( $audit_action_filter ) ) : ?>
+					<a href="<?php echo esc_url( remove_query_arg( [ 'action_type', 'paged' ] ) ); ?>" class="button">
+						<?php esc_html_e( 'Clear Filter', 'rd-post-republishing' ); ?>
+					</a>
+				<?php endif; ?>
+			</form>
+
 			<div class="wpr-export-buttons">
-				<button type="button" class="button" id="wpr-export-audit">
+				<button type="button" class="button wpr-export-audit-btn">
 					<span class="dashicons dashicons-download"></span>
 					<?php esc_html_e( 'Export CSV', 'rd-post-republishing' ); ?>
 				</button>

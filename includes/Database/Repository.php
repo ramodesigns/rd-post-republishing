@@ -465,6 +465,40 @@ class Repository {
 	}
 
 	/**
+	 * Get audit log count with optional filters.
+	 *
+	 * @since    1.0.0
+	 * @param    array<string, mixed>  $args  Query arguments.
+	 */
+	public function get_audit_count( array $args = [] ): int {
+		$where = [ '1=1' ];
+		$values = [];
+
+		if ( isset( $args['user_id'] ) && null !== $args['user_id'] ) {
+			$where[] = 'user_id = %d';
+			$values[] = $args['user_id'];
+		}
+
+		if ( isset( $args['action'] ) && null !== $args['action'] ) {
+			$where[] = 'action = %s';
+			$values[] = $args['action'];
+		}
+
+		$where_clause = implode( ' AND ', $where );
+		$query = "SELECT COUNT(*) FROM {$this->audit_table} WHERE {$where_clause}";
+
+		if ( ! empty( $values ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$prepared = $this->wpdb->prepare( $query, $values );
+		} else {
+			$prepared = $query;
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $this->wpdb->get_var( $prepared );
+	}
+
+	/**
 	 * Log an API request.
 	 *
 	 * @since    1.0.0
