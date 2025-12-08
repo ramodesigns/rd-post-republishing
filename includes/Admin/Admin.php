@@ -68,9 +68,11 @@ class Admin {
 			return;
 		}
 
+		$suffix = $this->get_asset_suffix();
+
 		wp_enqueue_style(
 			$this->plugin_name,
-			plugin_dir_url( dirname( __DIR__ ) ) . 'admin/css/rd-post-republishing-admin.css',
+			plugin_dir_url( dirname( __DIR__ ) ) . "admin/css/rd-post-republishing-admin{$suffix}.css",
 			[],
 			$this->version,
 			'all'
@@ -88,9 +90,11 @@ class Admin {
 			return;
 		}
 
+		$suffix = $this->get_asset_suffix();
+
 		wp_enqueue_script(
 			$this->plugin_name,
-			plugin_dir_url( dirname( __DIR__ ) ) . 'admin/js/rd-post-republishing-admin.js',
+			plugin_dir_url( dirname( __DIR__ ) ) . "admin/js/rd-post-republishing-admin{$suffix}.js",
 			[ 'jquery' ],
 			$this->version,
 			true
@@ -957,5 +961,17 @@ class Admin {
 			'debug_mode'                   => false,
 			'dry_run_mode'                 => false,
 		];
+	}
+
+	/**
+	 * Get the asset file suffix based on script debug mode.
+	 *
+	 * Returns '.min' for production (minified assets) or '' for development.
+	 *
+	 * @since    1.0.0
+	 * @return   string  '.min' or empty string.
+	 */
+	private function get_asset_suffix(): string {
+		return defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 	}
 }
