@@ -129,6 +129,18 @@ class Repository {
 	}
 
 	/**
+	 * Clear the settings cache.
+	 *
+	 * Should be called when settings are modified outside the Repository.
+	 *
+	 * @since    1.0.0
+	 */
+	public function clear_settings_cache(): void {
+		$this->settings_cache = null;
+		wp_cache_delete( 'wpr_settings', 'wpr_settings' );
+	}
+
+	/**
 	 * Get default plugin settings.
 	 *
 	 * @since    1.0.0

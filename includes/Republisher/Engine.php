@@ -528,23 +528,52 @@ class Engine {
 	}
 
 	/**
-	 * Acquire a lock to prevent concurrent execution.
+	 * Lock key for preventing concurrent execution.
 	 *
 	 * @since    1.0.0
 	 */
-	private function acquire_lock(): bool {
-		$lock_key = 'wpr_republishing_lock';
-		$lock_timeout = 10 * MINUTE_IN_SECONDS; // 10 minutes max
+	private const LOCK_KEY = 'wpr_republishing_lock';
 
+	/**
+	 * Lock timeout in seconds (10 minutes).
+	 *
+	 * @since    1.0.0
+	 */
+	private const LOCK_TIMEOUT = 600;
+
+	/**
+	 * Acquire a lock to prevent concurrent execution.
+	 *
+	 * Uses a transient-based mutex to ensure only one republishing
+	 * process runs at a time across cron, API, and manual triggers.
+	 *
+	 * @since    1.0.0
+	 * @return   bool  True if lock was acquired, false if already locked.
+	 */
+	private function acquire_lock(): bool {
 		// Check if lock exists and is still valid
-		$existing_lock = get_transient( $lock_key );
+		$existing_lock = get_transient( self::LOCK_KEY );
 		if ( false !== $existing_lock ) {
-			// Lock exists, another process is running
-			return false;
+			// Check if lock has expired (failsafe for stuck processes)
+			if ( is_numeric( $existing_lock ) && ( time() - (int) $existing_lock ) > self::LOCK_TIMEOUT ) {
+				// Lock is stale, delete it and continue
+				delete_transient( self::LOCK_KEY );
+			} else {
+				// Lock is valid, another process is running
+				return false;
+			}
 		}
 
-		// Set the lock
-		return set_transient( $lock_key, time(), $lock_timeout );
+		// Set the lock with current timestamp for stale detection
+		$lock_set = set_transient( self::LOCK_KEY, time(), self::LOCK_TIMEOUT );
+
+		// Double-check to handle race conditions
+		if ( $lock_set ) {
+			$check = get_transient( self::LOCK_KEY );
+			return time() === (int) $check || ( time() - (int) $check ) < 2;
+		}
+
+		return false;
 	}
 
 	/**
@@ -553,7 +582,54 @@ class Engine {
 	 * @since    1.0.0
 	 */
 	private function release_lock(): void {
-		delete_transient( 'wpr_republishing_lock' );
+		delete_transient( self::LOCK_KEY );
+	}
+
+	/**
+	 * Check if a lock is currently held.
+	 *
+	 * @since    1.0.0
+	 * @return   bool  True if locked, false if available.
+	 */
+	public function is_locked(): bool {
+		$lock = get_transient( self::LOCK_KEY );
+		if ( false === $lock ) {
+			return false;
+		}
+
+		// Check for stale lock
+		if ( is_numeric( $lock ) && ( time() - (int) $lock ) > self::LOCK_TIMEOUT ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get lock status information.
+	 *
+	 * @since    1.0.0
+	 * @return   array<string, mixed>  Lock status with 'locked', 'since', and 'age' keys.
+	 */
+	public function get_lock_status(): array {
+		$lock = get_transient( self::LOCK_KEY );
+
+		if ( false === $lock ) {
+			return [
+				'locked' => false,
+				'since'  => null,
+				'age'    => null,
+			];
+		}
+
+		$lock_time = is_numeric( $lock ) ? (int) $lock : 0;
+		$age = time() - $lock_time;
+
+		return [
+			'locked' => $age <= self::LOCK_TIMEOUT,
+			'since'  => $lock_time > 0 ? wp_date( 'Y-m-d H:i:s', $lock_time ) : null,
+			'age'    => $age,
+		];
 	}
 
 	/**
