@@ -1,0 +1,43 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - includes
+        - cli
+        - rd-post-republishing.php
+        - uninstall.php
+
+    # Bootstrap WordPress for proper global function detection
+    bootstrapFiles:
+        - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+
+    # Ignore WP-CLI classes (optional dependency)
+    ignoreErrors:
+        # WP-CLI is an optional dependency
+        - '#^Class WP_CLI not found\.$#'
+        - '#^Call to static method [a-z_]+\(\) on an unknown class WP_CLI\.$#'
+        - '#^Class WP_CLI\\Utils not found\.$#'
+        - '#^Call to static method [a-z_]+\(\) on an unknown class WP_CLI\\Utils\.$#'
+
+        # PHPStan may not understand some WordPress dynamic function calls
+        - '#^Parameter \#1 \$callback of function add_action expects callable#'
+        - '#^Parameter \#1 \$callback of function add_filter expects callable#'
+
+    # Parallel processing for faster analysis
+    parallel:
+        maximumNumberOfProcesses: 4
+
+    # Type coverage settings
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+
+    # Treat phpDoc types strictly
+    treatPhpDocTypesAsCertain: true
+
+    # Exception handling settings
+    exceptions:
+        check:
+            missingCheckedExceptionInThrows: false
+            tooWideThrowType: false
