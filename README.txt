@@ -1,114 +1,199 @@
-=== Plugin Name ===
-Contributors: (this should be a list of wordpress.org userid's)
+=== RD - Post Republishing ===
+Contributors: paulramotowski
 Donate link: https://www.paulramotowski.com/
-Tags: comments, spam
-Requires at least: 3.0.1
-Tested up to: 3.4
-Stable tag: 4.3
+Tags: republishing, seo, posts, automation, cron, content
+Requires at least: 6.6
+Tested up to: 6.7
+Requires PHP: 8.2
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Here is a short description of the plugin.  This should be no more than 150 characters.  No markup here.
+Automatically republish old posts to boost SEO by updating their publish dates, making evergreen content appear fresh in feeds and search results.
 
 == Description ==
 
-This is the long description.  No limit, and you can use Markdown (as well as in the following sections).
+**RD - Post Republishing** is a powerful WordPress plugin that helps you maximize the value of your existing content by automatically republishing older posts with updated timestamps. This SEO strategy can help boost traffic to your evergreen content.
 
-For backwards compatibility, if this section is missing, the full length of the short description will be used, and
-Markdown parsed.
+= Key Features =
 
-A few notes about the sections above:
+* **Automatic Republishing** - Schedule daily republishing via WP Cron
+* **Smart Post Selection** - Republishes oldest eligible posts first
+* **Configurable Quota** - Set daily limits by number or percentage
+* **Time Randomization** - Natural publish times within your configured hours
+* **Category Filtering** - Whitelist or blacklist categories
+* **Multiple Post Types** - Support for posts and custom post types
+* **REST API** - Trigger republishing programmatically
+* **WP-CLI Support** - Command-line interface for developers
+* **Detailed History** - Track all republishing activity
+* **Audit Logging** - Monitor settings changes
+* **Cache Integration** - Automatic cache clearing (WP Rocket, W3TC, etc.)
 
-*   "Contributors" is a comma separated list of wp.org/wp-plugins.org usernames
-*   "Tags" is a comma separated list of tags that apply to the plugin
-*   "Requires at least" is the lowest version that the plugin will work on
-*   "Tested up to" is the highest version that you've *successfully used to test the plugin*. Note that it might work on
-higher versions... this is just the highest one you've verified.
-*   Stable tag should indicate the Subversion "tag" of the latest stable version, or "trunk," if you use `/trunk/` for
-stable.
+= How It Works =
 
-    Note that the `readme.txt` of the stable tag is the one that is considered the defining one for the plugin, so
-if the `/trunk/readme.txt` file says that the stable tag is `4.3`, then it is `/tags/4.3/readme.txt` that'll be used
-for displaying information about the plugin.  In this situation, the only thing considered from the trunk `readme.txt`
-is the stable tag pointer.  Thus, if you develop in trunk, you can update the trunk `readme.txt` to reflect changes in
-your in-development version, without having that information incorrectly disclosed about the current stable version
-that lacks those changes -- as long as the trunk's `readme.txt` points to the correct stable tag.
+1. Configure which post types to republish
+2. Set your daily quota (e.g., 5 posts per day)
+3. Define the time window for republishing
+4. Set the minimum age for eligible posts
+5. The plugin automatically selects and republishes posts daily
 
-    If no stable tag is provided, it is assumed that trunk is stable, but you should specify "trunk" if that's where
-you put the stable version, in order to eliminate any doubt.
+= Requirements =
+
+* WordPress 6.6 or higher
+* PHP 8.2 or higher
+* MySQL 5.7+ or MariaDB 10.3+
+
+= Developer Features =
+
+* Modern PHP 8.2 codebase with strict typing
+* PSR-4 autoloading via Composer
+* Comprehensive hook system for extensibility
+* REST API with Application Password authentication
+* WP-CLI commands for automation
+* PHPStan level 8 compatible
+* WordPress Coding Standards compliant
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
+= Automatic Installation =
 
-e.g.
+1. Go to Plugins > Add New in your WordPress admin
+2. Search for "RD - Post Republishing"
+3. Click "Install Now" and then "Activate"
 
-1. Upload `rd-post-republishing.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+= Manual Installation =
+
+1. Download the plugin zip file
+2. Go to Plugins > Add New > Upload Plugin
+3. Choose the zip file and click "Install Now"
+4. Activate the plugin
+
+= Via Composer (for developers) =
+
+`composer require ramodesigns/rd-post-republishing`
+
+= After Installation =
+
+1. Go to Settings > Post Republishing
+2. Configure your republishing preferences
+3. The plugin will start republishing based on your WP Cron schedule
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= Does this affect my original post content? =
 
-An answer to that question.
+No. The plugin only updates the post's publish date and modified date. Your content, categories, tags, and all other data remain unchanged.
 
-= What about foo bar? =
+= How often does republishing occur? =
 
-Answer to foo bar dilemma.
+By default, the plugin runs once daily via WP Cron. You can also trigger it manually or via the REST API.
+
+= Will posts be republished multiple times? =
+
+Each post is only republished once per day. The plugin tracks which posts have been republished to prevent duplicates.
+
+= Can I exclude certain posts? =
+
+Yes! You can use category filtering (whitelist or blacklist) to control which posts are eligible. You can also add the `wpr_exclude_post` post meta with a value of `1` to exclude specific posts.
+
+= Does it work with WP Rocket / W3 Total Cache? =
+
+Yes. The plugin automatically clears caches for WP Rocket, W3 Total Cache, WP Super Cache, LiteSpeed Cache, WP Fastest Cache, and Autoptimize when posts are republished.
+
+= Can I use this with custom post types? =
+
+Yes. Any public post type can be enabled in the settings.
+
+= What is the minimum post age? =
+
+The default is 30 days, but you can configure this between 7 and 180 days.
+
+= How do I trigger republishing via the API? =
+
+Send a POST request to `/wp-json/republish/v1/trigger` with Application Password authentication. Rate limiting applies (default: 1 request per day).
+
+= Is there a WP-CLI command? =
+
+Yes! Use `wp wpr run` to execute republishing, `wp wpr dry-run` for a preview, and `wp wpr status` to check configuration.
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+1. Overview dashboard showing republishing statistics
+2. Schedule tab with upcoming posts preview
+3. Settings configuration page
+4. History and audit log viewer
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
-
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+= 1.0.0 =
+* Initial release
+* Automatic post republishing with configurable schedule
+* REST API endpoint with rate limiting
+* WP-CLI commands
+* Cache clearing integration
+* Comprehensive admin interface
+* Audit logging and history tracking
+* PHPStan level 8 and WordPress Coding Standards compliant
 
 == Upgrade Notice ==
 
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
+= 1.0.0 =
+Initial release of RD - Post Republishing.
 
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
+== Developer Documentation ==
 
-== Arbitrary section ==
+= Hooks and Filters =
 
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
+**Actions:**
 
-== A brief Markdown Example ==
+* `wpr_before_republish` - Fires before a post is republished
+* `wpr_after_republish` - Fires after successful republishing
+* `wpr_republish_failed` - Fires when republishing fails
+* `wpr_post_republished` - Fires after each post in a batch
+* `wpr_daily_batch_complete` - Fires after daily batch completes
 
-Ordered list:
+**Filters:**
 
-1. Some feature
-1. Another feature
-1. Something else about the plugin
+* `wpr_required_cap` - Filter the required capability (default: `manage_options`)
+* `wpr_cache_clear_results` - Filter cache clearing results
+* `wpr_eligible_posts` - Filter the list of eligible posts
 
-Unordered list:
+= REST API =
 
-* something
-* something else
-* third thing
+**Endpoint:** `POST /wp-json/republish/v1/trigger`
 
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
+**Authentication:** Application Password (Basic Auth)
 
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
+**Parameters:**
+* `force` (boolean) - Bypass daily check (debug mode only)
 
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Republished 5 posts successfully.",
+  "posts": [...],
+  "total": 5
+}
+```
 
-`<?php code(); // goes in backticks ?>`
+= WP-CLI Commands =
+
+* `wp wpr run` - Execute republishing batch
+* `wp wpr dry-run` - Preview without changes
+* `wp wpr status` - Show current configuration
+* `wp wpr history` - View republishing history
+* `wp wpr cleanup` - Purge old records
+* `wp wpr reschedule` - Reset cron events
+* `wp wpr db status` - Check database migration status
+* `wp wpr db migrate` - Run pending migrations
+
+== Privacy Policy ==
+
+This plugin stores the following data:
+
+* Republishing history (post IDs, dates, status)
+* Audit logs (user IDs, settings changes)
+* API request logs (IP addresses for rate limiting)
+
+All data is stored in your WordPress database and is not transmitted to external services. Data is automatically purged after 365 days by default.
