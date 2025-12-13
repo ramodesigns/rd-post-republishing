@@ -36,14 +36,14 @@ class AuditTrail {
 	 *
 	 * @since    1.0.0
 	 */
-	public const ACTION_SETTINGS_UPDATED = 'settings_updated';
-	public const ACTION_SETTINGS_RESET = 'settings_reset';
-	public const ACTION_MANUAL_TRIGGER = 'manual_trigger';
-	public const ACTION_DRY_RUN = 'dry_run';
-	public const ACTION_CRON_TOGGLE = 'cron_toggle';
-	public const ACTION_DATA_EXPORT = 'data_export';
-	public const ACTION_DATA_PURGE = 'data_purge';
-	public const ACTION_PLUGIN_ACTIVATED = 'plugin_activated';
+	public const ACTION_SETTINGS_UPDATED   = 'settings_updated';
+	public const ACTION_SETTINGS_RESET     = 'settings_reset';
+	public const ACTION_MANUAL_TRIGGER     = 'manual_trigger';
+	public const ACTION_DRY_RUN            = 'dry_run';
+	public const ACTION_CRON_TOGGLE        = 'cron_toggle';
+	public const ACTION_DATA_EXPORT        = 'data_export';
+	public const ACTION_DATA_PURGE         = 'data_purge';
+	public const ACTION_PLUGIN_ACTIVATED   = 'plugin_activated';
 	public const ACTION_PLUGIN_DEACTIVATED = 'plugin_deactivated';
 
 	/**
@@ -64,20 +64,20 @@ class AuditTrail {
 	 * Initialize the audit trail.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
-	 * @param    Logger|null      $logger      Optional logger instance.
+	 * @param    Repository|null $repository  Optional repository instance.
+	 * @param    Logger|null     $logger      Optional logger instance.
 	 */
 	public function __construct( ?Repository $repository = null, ?Logger $logger = null ) {
 		$this->repository = $repository ?? new Repository();
-		$this->logger = $logger ?? Logger::get_instance( $this->repository );
+		$this->logger     = $logger ?? Logger::get_instance( $this->repository );
 	}
 
 	/**
 	 * Log a settings update.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $old_settings  Previous settings.
-	 * @param    array<string, mixed>  $new_settings  New settings.
+	 * @param    array<string, mixed> $old_settings  Previous settings.
+	 * @param    array<string, mixed> $new_settings  New settings.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_settings_update( array $old_settings, array $new_settings ): int|false {
@@ -107,9 +107,9 @@ class AuditTrail {
 	 * Log a specific setting change.
 	 *
 	 * @since    1.0.0
-	 * @param    string      $setting_key  The setting key.
-	 * @param    mixed       $old_value    Previous value.
-	 * @param    mixed       $new_value    New value.
+	 * @param    string $setting_key  The setting key.
+	 * @param    mixed  $old_value    Previous value.
+	 * @param    mixed  $new_value    New value.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_setting_change( string $setting_key, mixed $old_value, mixed $new_value ): int|false {
@@ -122,11 +122,13 @@ class AuditTrail {
 			]
 		);
 
+		$old_encoded = is_scalar( $old_value ) ? (string) $old_value : wp_json_encode( $old_value );
+		$new_encoded = is_scalar( $new_value ) ? (string) $new_value : wp_json_encode( $new_value );
 		return $this->repository->log_audit(
 			self::ACTION_SETTINGS_UPDATED,
 			$setting_key,
-			is_scalar( $old_value ) ? (string) $old_value : wp_json_encode( $old_value ),
-			is_scalar( $new_value ) ? (string) $new_value : wp_json_encode( $new_value )
+			false !== $old_encoded ? $old_encoded : null,
+			false !== $new_encoded ? $new_encoded : null
 		);
 	}
 
@@ -134,8 +136,8 @@ class AuditTrail {
 	 * Log a manual republishing trigger.
 	 *
 	 * @since    1.0.0
-	 * @param    int                   $post_count  Number of posts republished.
-	 * @param    array<string, mixed>  $context     Additional context.
+	 * @param    int                  $post_count  Number of posts republished.
+	 * @param    array<string, mixed> $context     Additional context.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_manual_trigger( int $post_count, array $context = [] ): int|false {
@@ -156,8 +158,8 @@ class AuditTrail {
 	 * Log a dry run execution.
 	 *
 	 * @since    1.0.0
-	 * @param    int                   $post_count  Number of posts that would be republished.
-	 * @param    array<string, mixed>  $context     Additional context.
+	 * @param    int                  $post_count  Number of posts that would be republished.
+	 * @param    array<string, mixed> $context     Additional context.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_dry_run( int $post_count, array $context = [] ): int|false {
@@ -178,7 +180,7 @@ class AuditTrail {
 	 * Log a cron toggle action.
 	 *
 	 * @since    1.0.0
-	 * @param    bool  $enabled  Whether cron was enabled or disabled.
+	 * @param    bool $enabled  Whether cron was enabled or disabled.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_cron_toggle( bool $enabled ): int|false {
@@ -198,21 +200,29 @@ class AuditTrail {
 	 * Log a data export action.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $export_type  Type of export (history, audit, etc.).
-	 * @param    int     $record_count Number of records exported.
+	 * @param    string $export_type  Type of export (history, audit, etc.).
+	 * @param    int    $record_count Number of records exported.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_data_export( string $export_type, int $record_count ): int|false {
 		$this->logger->info(
 			sprintf( 'Data export: %d %s records', $record_count, $export_type ),
-			[ 'type' => $export_type, 'count' => $record_count ]
+			[
+				'type'  => $export_type,
+				'count' => $record_count,
+			]
 		);
 
 		return $this->repository->log_audit(
 			self::ACTION_DATA_EXPORT,
 			$export_type,
 			null,
-			wp_json_encode( [ 'type' => $export_type, 'count' => $record_count ] ) ?: null
+			wp_json_encode(
+				[
+					'type'  => $export_type,
+					'count' => $record_count,
+				]
+			) ?: null
 		);
 	}
 
@@ -220,7 +230,7 @@ class AuditTrail {
 	 * Log a data purge action.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, int>  $deleted_counts  Counts of deleted records by table.
+	 * @param    array<string, int> $deleted_counts  Counts of deleted records by table.
 	 * @return   int|false  Audit log ID or false on failure.
 	 */
 	public function log_data_purge( array $deleted_counts ): int|false {
@@ -252,11 +262,13 @@ class AuditTrail {
 			self::ACTION_PLUGIN_ACTIVATED,
 			null,
 			null,
-			wp_json_encode( [
-				'version'     => defined( 'WPR_VERSION' ) ? WPR_VERSION : '1.0.0',
-				'php_version' => PHP_VERSION,
-				'wp_version'  => get_bloginfo( 'version' ),
-			] ) ?: null
+			wp_json_encode(
+				[
+					'version'     => defined( 'WPR_VERSION' ) ? WPR_VERSION : '1.0.0',
+					'php_version' => PHP_VERSION,
+					'wp_version'  => get_bloginfo( 'version' ),
+				]
+			) ?: null
 		);
 	}
 
@@ -281,19 +293,19 @@ class AuditTrail {
 	 * Get a human-readable action label.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $action  The action constant.
+	 * @param    string $action  The action constant.
 	 */
 	public function get_action_label( string $action ): string {
 		$labels = [
-			self::ACTION_SETTINGS_UPDATED    => __( 'Settings Updated', 'rd-post-republishing' ),
-			self::ACTION_SETTINGS_RESET      => __( 'Settings Reset', 'rd-post-republishing' ),
-			self::ACTION_MANUAL_TRIGGER      => __( 'Manual Trigger', 'rd-post-republishing' ),
-			self::ACTION_DRY_RUN             => __( 'Dry Run', 'rd-post-republishing' ),
-			self::ACTION_CRON_TOGGLE         => __( 'Cron Toggle', 'rd-post-republishing' ),
-			self::ACTION_DATA_EXPORT         => __( 'Data Export', 'rd-post-republishing' ),
-			self::ACTION_DATA_PURGE          => __( 'Data Purge', 'rd-post-republishing' ),
-			self::ACTION_PLUGIN_ACTIVATED    => __( 'Plugin Activated', 'rd-post-republishing' ),
-			self::ACTION_PLUGIN_DEACTIVATED  => __( 'Plugin Deactivated', 'rd-post-republishing' ),
+			self::ACTION_SETTINGS_UPDATED   => __( 'Settings Updated', 'rd-post-republishing' ),
+			self::ACTION_SETTINGS_RESET     => __( 'Settings Reset', 'rd-post-republishing' ),
+			self::ACTION_MANUAL_TRIGGER     => __( 'Manual Trigger', 'rd-post-republishing' ),
+			self::ACTION_DRY_RUN            => __( 'Dry Run', 'rd-post-republishing' ),
+			self::ACTION_CRON_TOGGLE        => __( 'Cron Toggle', 'rd-post-republishing' ),
+			self::ACTION_DATA_EXPORT        => __( 'Data Export', 'rd-post-republishing' ),
+			self::ACTION_DATA_PURGE         => __( 'Data Purge', 'rd-post-republishing' ),
+			self::ACTION_PLUGIN_ACTIVATED   => __( 'Plugin Activated', 'rd-post-republishing' ),
+			self::ACTION_PLUGIN_DEACTIVATED => __( 'Plugin Deactivated', 'rd-post-republishing' ),
 		];
 
 		return $labels[ $action ] ?? $action;
@@ -307,15 +319,15 @@ class AuditTrail {
 	 */
 	public function get_action_types(): array {
 		return [
-			self::ACTION_SETTINGS_UPDATED    => $this->get_action_label( self::ACTION_SETTINGS_UPDATED ),
-			self::ACTION_SETTINGS_RESET      => $this->get_action_label( self::ACTION_SETTINGS_RESET ),
-			self::ACTION_MANUAL_TRIGGER      => $this->get_action_label( self::ACTION_MANUAL_TRIGGER ),
-			self::ACTION_DRY_RUN             => $this->get_action_label( self::ACTION_DRY_RUN ),
-			self::ACTION_CRON_TOGGLE         => $this->get_action_label( self::ACTION_CRON_TOGGLE ),
-			self::ACTION_DATA_EXPORT         => $this->get_action_label( self::ACTION_DATA_EXPORT ),
-			self::ACTION_DATA_PURGE          => $this->get_action_label( self::ACTION_DATA_PURGE ),
-			self::ACTION_PLUGIN_ACTIVATED    => $this->get_action_label( self::ACTION_PLUGIN_ACTIVATED ),
-			self::ACTION_PLUGIN_DEACTIVATED  => $this->get_action_label( self::ACTION_PLUGIN_DEACTIVATED ),
+			self::ACTION_SETTINGS_UPDATED   => $this->get_action_label( self::ACTION_SETTINGS_UPDATED ),
+			self::ACTION_SETTINGS_RESET     => $this->get_action_label( self::ACTION_SETTINGS_RESET ),
+			self::ACTION_MANUAL_TRIGGER     => $this->get_action_label( self::ACTION_MANUAL_TRIGGER ),
+			self::ACTION_DRY_RUN            => $this->get_action_label( self::ACTION_DRY_RUN ),
+			self::ACTION_CRON_TOGGLE        => $this->get_action_label( self::ACTION_CRON_TOGGLE ),
+			self::ACTION_DATA_EXPORT        => $this->get_action_label( self::ACTION_DATA_EXPORT ),
+			self::ACTION_DATA_PURGE         => $this->get_action_label( self::ACTION_DATA_PURGE ),
+			self::ACTION_PLUGIN_ACTIVATED   => $this->get_action_label( self::ACTION_PLUGIN_ACTIVATED ),
+			self::ACTION_PLUGIN_DEACTIVATED => $this->get_action_label( self::ACTION_PLUGIN_DEACTIVATED ),
 		];
 	}
 
@@ -323,8 +335,8 @@ class AuditTrail {
 	 * Calculate differences between old and new settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $old_settings  Previous settings.
-	 * @param    array<string, mixed>  $new_settings  New settings.
+	 * @param    array<string, mixed> $old_settings  Previous settings.
+	 * @param    array<string, mixed> $new_settings  New settings.
 	 * @return   array<string, array<string, mixed>>  Array of changed settings.
 	 */
 	private function diff_settings( array $old_settings, array $new_settings ): array {
@@ -359,25 +371,25 @@ class AuditTrail {
 	 * Format audit log entry for display.
 	 *
 	 * @since    1.0.0
-	 * @param    object  $log_entry  The audit log entry from database.
+	 * @param    object $log_entry  The audit log entry from database.
 	 * @return   array<string, mixed>  Formatted log entry.
 	 */
 	public function format_log_entry( object $log_entry ): array {
 		$user = get_userdata( (int) $log_entry->user_id );
 
 		return [
-			'id'          => (int) $log_entry->id,
-			'user_id'     => (int) $log_entry->user_id,
-			'user_name'   => $user ? $user->display_name : __( 'Unknown', 'rd-post-republishing' ),
-			'user_email'  => $user ? $user->user_email : '',
-			'action'      => $log_entry->action,
-			'action_label' => $this->get_action_label( $log_entry->action ),
-			'setting_key' => $log_entry->setting_key,
-			'old_value'   => $log_entry->old_value,
-			'new_value'   => $log_entry->new_value,
-			'ip_address'  => $log_entry->ip_address,
-			'user_agent'  => $log_entry->user_agent,
-			'timestamp'   => $log_entry->timestamp,
+			'id'                  => (int) $log_entry->id,
+			'user_id'             => (int) $log_entry->user_id,
+			'user_name'           => $user ? $user->display_name : __( 'Unknown', 'rd-post-republishing' ),
+			'user_email'          => $user ? $user->user_email : '',
+			'action'              => $log_entry->action,
+			'action_label'        => $this->get_action_label( $log_entry->action ),
+			'setting_key'         => $log_entry->setting_key,
+			'old_value'           => $log_entry->old_value,
+			'new_value'           => $log_entry->new_value,
+			'ip_address'          => $log_entry->ip_address,
+			'user_agent'          => $log_entry->user_agent,
+			'timestamp'           => $log_entry->timestamp,
 			'timestamp_formatted' => wp_date(
 				get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
 				strtotime( $log_entry->timestamp )
@@ -389,7 +401,7 @@ class AuditTrail {
 	 * Get recent audit logs formatted for display.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $limit  Maximum number of entries.
+	 * @param    int $limit  Maximum number of entries.
 	 * @return   array<int, array<string, mixed>>  Formatted audit logs.
 	 */
 	public function get_recent_formatted( int $limit = 10 ): array {

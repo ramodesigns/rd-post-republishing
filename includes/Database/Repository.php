@@ -71,9 +71,9 @@ class Repository {
 	 */
 	public function __construct() {
 		global $wpdb;
-		$this->wpdb = $wpdb;
+		$this->wpdb          = $wpdb;
 		$this->history_table = $wpdb->prefix . 'wpr_history';
-		$this->audit_table = $wpdb->prefix . 'wpr_audit';
+		$this->audit_table   = $wpdb->prefix . 'wpr_audit';
 		$this->api_log_table = $wpdb->prefix . 'wpr_api_log';
 	}
 
@@ -94,7 +94,7 @@ class Repository {
 			return $this->settings_cache;
 		}
 
-		$settings = get_option( 'wpr_settings', $this->get_default_settings() );
+		$settings             = get_option( 'wpr_settings', $this->get_default_settings() );
 		$this->settings_cache = is_array( $settings ) ? $settings : $this->get_default_settings();
 
 		wp_cache_set( 'wpr_settings', $this->settings_cache, 'wpr_settings', HOUR_IN_SECONDS );
@@ -106,22 +106,24 @@ class Repository {
 	 * Update plugin settings.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $settings  The settings to save.
+	 * @param    array<string, mixed> $settings  The settings to save.
 	 */
 	public function update_settings( array $settings ): bool {
 		$old_settings = $this->get_settings();
-		$result = update_option( 'wpr_settings', $settings );
+		$result       = update_option( 'wpr_settings', $settings );
 
 		if ( $result ) {
 			$this->settings_cache = $settings;
 			wp_cache_set( 'wpr_settings', $settings, 'wpr_settings', HOUR_IN_SECONDS );
 
 			// Log the settings change
+			$old_encoded = wp_json_encode( $old_settings );
+			$new_encoded = wp_json_encode( $settings );
 			$this->log_audit(
 				'settings_updated',
 				null,
-				wp_json_encode( $old_settings ),
-				wp_json_encode( $settings )
+				false !== $old_encoded ? $old_encoded : null,
+				false !== $new_encoded ? $new_encoded : null
 			);
 		}
 
@@ -210,55 +212,55 @@ class Repository {
 	 * Get republishing history with optional filters.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $args  Query arguments.
+	 * @param    array<string, mixed> $args  Query arguments.
 	 * @return   array<int, object>
 	 */
 	public function get_history( array $args = [] ): array {
 		$defaults = [
-			'status'     => null,
-			'post_type'  => null,
-			'date_from'  => null,
-			'date_to'    => null,
-			'limit'      => 50,
-			'offset'     => 0,
-			'orderby'    => 'created_at',
-			'order'      => 'DESC',
+			'status'    => null,
+			'post_type' => null,
+			'date_from' => null,
+			'date_to'   => null,
+			'limit'     => 50,
+			'offset'    => 0,
+			'orderby'   => 'created_at',
+			'order'     => 'DESC',
 		];
 
 		$args = wp_parse_args( $args, $defaults );
 
-		$where = [ '1=1' ];
+		$where  = [ '1=1' ];
 		$values = [];
 
 		if ( null !== $args['status'] ) {
-			$where[] = 'status = %s';
+			$where[]  = 'status = %s';
 			$values[] = $args['status'];
 		}
 
 		if ( null !== $args['post_type'] ) {
-			$where[] = 'post_type = %s';
+			$where[]  = 'post_type = %s';
 			$values[] = $args['post_type'];
 		}
 
 		if ( null !== $args['date_from'] ) {
-			$where[] = 'created_at >= %s';
+			$where[]  = 'created_at >= %s';
 			$values[] = $args['date_from'];
 		}
 
 		if ( null !== $args['date_to'] ) {
-			$where[] = 'created_at <= %s';
+			$where[]  = 'created_at <= %s';
 			$values[] = $args['date_to'];
 		}
 
 		$allowed_orderby = [ 'created_at', 'republish_date', 'post_id', 'status' ];
-		$orderby = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'created_at';
-		$order = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
+		$orderby         = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'created_at';
+		$order           = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
 
 		$where_clause = implode( ' AND ', $where );
-		$limit = absint( $args['limit'] );
-		$offset = absint( $args['offset'] );
+		$limit        = absint( $args['limit'] );
+		$offset       = absint( $args['offset'] );
 
-		$query = "SELECT * FROM {$this->history_table} WHERE {$where_clause} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
+		$query    = "SELECT * FROM {$this->history_table} WHERE {$where_clause} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
 		$values[] = $limit;
 		$values[] = $offset;
 
@@ -277,24 +279,24 @@ class Repository {
 	 * Get history count with optional filters.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $args  Query arguments.
+	 * @param    array<string, mixed> $args  Query arguments.
 	 */
 	public function get_history_count( array $args = [] ): int {
-		$where = [ '1=1' ];
+		$where  = [ '1=1' ];
 		$values = [];
 
 		if ( isset( $args['status'] ) && null !== $args['status'] ) {
-			$where[] = 'status = %s';
+			$where[]  = 'status = %s';
 			$values[] = $args['status'];
 		}
 
 		if ( isset( $args['post_type'] ) && null !== $args['post_type'] ) {
-			$where[] = 'post_type = %s';
+			$where[]  = 'post_type = %s';
 			$values[] = $args['post_type'];
 		}
 
 		$where_clause = implode( ' AND ', $where );
-		$query = "SELECT COUNT(*) FROM {$this->history_table} WHERE {$where_clause}";
+		$query        = "SELECT COUNT(*) FROM {$this->history_table} WHERE {$where_clause}";
 
 		if ( ! empty( $values ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -311,11 +313,11 @@ class Repository {
 	 * Check if a post was republished today.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 */
 	public function was_republished_today( int $post_id ): bool {
 		$today_start = wp_date( 'Y-m-d 00:00:00' );
-		$today_end = wp_date( 'Y-m-d 23:59:59' );
+		$today_end   = wp_date( 'Y-m-d 23:59:59' );
 
 		$query = $this->wpdb->prepare(
 			"SELECT COUNT(*) FROM {$this->history_table}
@@ -338,7 +340,7 @@ class Repository {
 	 */
 	public function get_today_republish_count(): int {
 		$today_start = wp_date( 'Y-m-d 00:00:00' );
-		$today_end = wp_date( 'Y-m-d 23:59:59' );
+		$today_end   = wp_date( 'Y-m-d 23:59:59' );
 
 		$query = $this->wpdb->prepare(
 			"SELECT COUNT(*) FROM {$this->history_table}
@@ -360,7 +362,7 @@ class Repository {
 	 */
 	public function get_today_republished_ids(): array {
 		$today_start = wp_date( 'Y-m-d 00:00:00' );
-		$today_end = wp_date( 'Y-m-d 23:59:59' );
+		$today_end   = wp_date( 'Y-m-d 23:59:59' );
 
 		$query = $this->wpdb->prepare(
 			"SELECT DISTINCT post_id FROM {$this->history_table}
@@ -391,7 +393,7 @@ class Repository {
 		?string $old_value = null,
 		?string $new_value = null
 	): int|false {
-		$user_id = get_current_user_id();
+		$user_id    = get_current_user_id();
 		$ip_address = $this->get_client_ip();
 		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] )
 			? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) )
@@ -419,7 +421,7 @@ class Repository {
 	 * Get audit logs with optional filters.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $args  Query arguments.
+	 * @param    array<string, mixed> $args  Query arguments.
 	 * @return   array<int, object>
 	 */
 	public function get_audit_logs( array $args = [] ): array {
@@ -434,34 +436,34 @@ class Repository {
 
 		$args = wp_parse_args( $args, $defaults );
 
-		$where = [ '1=1' ];
+		$where  = [ '1=1' ];
 		$values = [];
 
 		if ( null !== $args['user_id'] ) {
-			$where[] = 'user_id = %d';
+			$where[]  = 'user_id = %d';
 			$values[] = $args['user_id'];
 		}
 
 		if ( null !== $args['action'] ) {
-			$where[] = 'action = %s';
+			$where[]  = 'action = %s';
 			$values[] = $args['action'];
 		}
 
 		if ( null !== $args['date_from'] ) {
-			$where[] = 'timestamp >= %s';
+			$where[]  = 'timestamp >= %s';
 			$values[] = $args['date_from'];
 		}
 
 		if ( null !== $args['date_to'] ) {
-			$where[] = 'timestamp <= %s';
+			$where[]  = 'timestamp <= %s';
 			$values[] = $args['date_to'];
 		}
 
 		$where_clause = implode( ' AND ', $where );
-		$limit = absint( $args['limit'] );
-		$offset = absint( $args['offset'] );
+		$limit        = absint( $args['limit'] );
+		$offset       = absint( $args['offset'] );
 
-		$query = "SELECT * FROM {$this->audit_table} WHERE {$where_clause} ORDER BY timestamp DESC LIMIT %d OFFSET %d";
+		$query    = "SELECT * FROM {$this->audit_table} WHERE {$where_clause} ORDER BY timestamp DESC LIMIT %d OFFSET %d";
 		$values[] = $limit;
 		$values[] = $offset;
 
@@ -480,24 +482,24 @@ class Repository {
 	 * Get audit log count with optional filters.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $args  Query arguments.
+	 * @param    array<string, mixed> $args  Query arguments.
 	 */
 	public function get_audit_count( array $args = [] ): int {
-		$where = [ '1=1' ];
+		$where  = [ '1=1' ];
 		$values = [];
 
 		if ( isset( $args['user_id'] ) && null !== $args['user_id'] ) {
-			$where[] = 'user_id = %d';
+			$where[]  = 'user_id = %d';
 			$values[] = $args['user_id'];
 		}
 
 		if ( isset( $args['action'] ) && null !== $args['action'] ) {
-			$where[] = 'action = %s';
+			$where[]  = 'action = %s';
 			$values[] = $args['action'];
 		}
 
 		$where_clause = implode( ' AND ', $where );
-		$query = "SELECT COUNT(*) FROM {$this->audit_table} WHERE {$where_clause}";
+		$query        = "SELECT COUNT(*) FROM {$this->audit_table} WHERE {$where_clause}";
 
 		if ( ! empty( $values ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -549,7 +551,7 @@ class Repository {
 	 * @param    int      $rate_limit_seconds Rate limit in seconds.
 	 */
 	public function is_rate_limited( string $endpoint, ?int $user_id, int $rate_limit_seconds ): bool {
-		$ip_address = $this->get_client_ip();
+		$ip_address  = $this->get_client_ip();
 		$cutoff_time = wp_date( 'Y-m-d H:i:s', time() - $rate_limit_seconds );
 
 		// Check by user ID if available, otherwise by IP
@@ -585,12 +587,13 @@ class Repository {
 	 * Purge old records based on retention policy.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $retention_days  Number of days to retain records.
+	 * @param    int $retention_days  Number of days to retain records.
 	 * @return   array<string, int>  Count of deleted records per table.
 	 */
 	public function purge_old_records( int $retention_days = 365 ): array {
-		$cutoff_date = wp_date( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
-		$deleted = [];
+		$cutoff_timestamp = strtotime( "-{$retention_days} days" );
+		$cutoff_date      = false !== $cutoff_timestamp ? wp_date( 'Y-m-d H:i:s', $cutoff_timestamp ) : wp_date( 'Y-m-d H:i:s' );
+		$deleted          = [];
 
 		// Purge history
 		$deleted['history'] = (int) $this->wpdb->query(
@@ -680,7 +683,7 @@ class Repository {
 				// Handle comma-separated IPs (X-Forwarded-For)
 				if ( str_contains( $ip, ',' ) ) {
 					$ips = explode( ',', $ip );
-					$ip = trim( $ips[0] );
+					$ip  = trim( $ips[0] );
 				}
 				if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
 					return $ip;

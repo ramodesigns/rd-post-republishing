@@ -70,7 +70,7 @@ class Plugin {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		$this->version = defined( 'RD_POST_REPUBLISHING_VERSION' )
+		$this->version     = defined( 'RD_POST_REPUBLISHING_VERSION' )
 			? RD_POST_REPUBLISHING_VERSION
 			: '1.0.0';
 		$this->plugin_name = 'rd-post-republishing';

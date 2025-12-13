@@ -84,9 +84,9 @@ class Maintenance {
 	 * Initialize the maintenance handler.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
-	 * @param    Schema|null      $schema      Optional schema instance.
-	 * @param    Logger|null      $logger      Optional logger instance.
+	 * @param    Repository|null $repository  Optional repository instance.
+	 * @param    Schema|null     $schema      Optional schema instance.
+	 * @param    Logger|null     $logger      Optional logger instance.
 	 */
 	public function __construct(
 		?Repository $repository = null,
@@ -94,17 +94,17 @@ class Maintenance {
 		?Logger $logger = null
 	) {
 		global $wpdb;
-		$this->wpdb = $wpdb;
+		$this->wpdb       = $wpdb;
 		$this->repository = $repository ?? new Repository();
-		$this->schema = $schema ?? new Schema();
-		$this->logger = $logger ?? Logger::get_instance( $this->repository );
+		$this->schema     = $schema ?? new Schema();
+		$this->logger     = $logger ?? Logger::get_instance( $this->repository );
 	}
 
 	/**
 	 * Run all maintenance tasks.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $retention_days  Days to retain data.
+	 * @param    int $retention_days  Days to retain data.
 	 * @return   array<string, mixed>  Results of maintenance operations.
 	 */
 	public function run_maintenance( int $retention_days = self::DEFAULT_RETENTION_DAYS ): array {
@@ -117,7 +117,7 @@ class Maintenance {
 			'transients' => $this->cleanup_transients(),
 		];
 
-		$results['duration'] = $this->logger->end_timer( $start_time, 'Database maintenance' );
+		$results['duration']  = $this->logger->end_timer( $start_time, 'Database maintenance' );
 		$results['timestamp'] = current_time( 'mysql' );
 
 		$this->logger->info( 'Database maintenance completed', $results );
@@ -129,22 +129,26 @@ class Maintenance {
 	 * Purge old records based on retention policy.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $retention_days  Number of days to retain records.
+	 * @param    int $retention_days  Number of days to retain records.
 	 * @return   array<string, int>  Count of deleted records per table.
 	 */
 	public function purge_old_records( int $retention_days = self::DEFAULT_RETENTION_DAYS ): array {
 		$retention_days = max( self::MIN_RETENTION_DAYS, min( self::MAX_RETENTION_DAYS, $retention_days ) );
-		$cutoff_date = wp_date( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
+		$cutoff_date    = wp_date( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
 
 		$this->logger->debug( sprintf( 'Purging records older than %s', $cutoff_date ) );
 
 		$deleted = $this->repository->purge_old_records( $retention_days );
 
-		$this->logger->db_event( 'purge', 'all', [
-			'retention_days' => $retention_days,
-			'cutoff_date'    => $cutoff_date,
-			'deleted'        => $deleted,
-		] );
+		$this->logger->db_event(
+			'purge',
+			'all',
+			[
+				'retention_days' => $retention_days,
+				'cutoff_date'    => $cutoff_date,
+				'deleted'        => $deleted,
+			]
+		);
 
 		return $deleted;
 	}
@@ -159,7 +163,7 @@ class Maintenance {
 	 */
 	public function cleanup_orphaned_data(): array {
 		$history_table = $this->schema->get_table_name( 'history' );
-		$posts_table = $this->wpdb->posts;
+		$posts_table   = $this->wpdb->posts;
 
 		if ( null === $history_table ) {
 			return [ 'orphaned_history' => 0 ];
@@ -227,7 +231,7 @@ class Maintenance {
 
 			if ( false !== $timeout && (int) $timeout < time() ) {
 				delete_transient( $transient_name );
-				$deleted++;
+				++$deleted;
 			}
 		}
 
@@ -248,28 +252,28 @@ class Maintenance {
 	 */
 	public function get_status(): array {
 		$table_status = $this->schema->get_table_status();
-		$row_counts = $this->schema->get_row_counts();
+		$row_counts   = $this->schema->get_row_counts();
 
 		$total_rows = array_sum( $row_counts );
 		$total_size = array_sum( array_column( $table_status, 'size_kb' ) );
 
 		// Get oldest record dates
 		$oldest_history = $this->get_oldest_record( 'history', 'created_at' );
-		$oldest_audit = $this->get_oldest_record( 'audit', 'timestamp' );
+		$oldest_audit   = $this->get_oldest_record( 'audit', 'timestamp' );
 		$oldest_api_log = $this->get_oldest_record( 'api_log', 'request_timestamp' );
 
 		return [
-			'tables'          => $table_status,
-			'row_counts'      => $row_counts,
-			'total_rows'      => $total_rows,
-			'total_size_kb'   => $total_size,
-			'oldest_records'  => [
+			'tables'         => $table_status,
+			'row_counts'     => $row_counts,
+			'total_rows'     => $total_rows,
+			'total_size_kb'  => $total_size,
+			'oldest_records' => [
 				'history' => $oldest_history,
 				'audit'   => $oldest_audit,
 				'api_log' => $oldest_api_log,
 			],
-			'schema_version'  => $this->schema->get_installed_version(),
-			'needs_update'    => $this->schema->needs_update(),
+			'schema_version' => $this->schema->get_installed_version(),
+			'needs_update'   => $this->schema->needs_update(),
 		];
 	}
 
@@ -277,8 +281,8 @@ class Maintenance {
 	 * Get the oldest record date from a table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_key   The table key.
-	 * @param    string  $date_column The date column name.
+	 * @param    string $table_key   The table key.
+	 * @param    string $date_column The date column name.
 	 */
 	private function get_oldest_record( string $table_key, string $date_column ): ?string {
 		$table = $this->schema->get_table_name( $table_key );
@@ -297,12 +301,12 @@ class Maintenance {
 	 * Estimate records to be purged.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $retention_days  Retention period in days.
+	 * @param    int $retention_days  Retention period in days.
 	 * @return   array<string, int>  Estimated record counts per table.
 	 */
 	public function estimate_purge( int $retention_days = self::DEFAULT_RETENTION_DAYS ): array {
 		$retention_days = max( self::MIN_RETENTION_DAYS, min( self::MAX_RETENTION_DAYS, $retention_days ) );
-		$cutoff_date = wp_date( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
+		$cutoff_date    = wp_date( 'Y-m-d H:i:s', strtotime( "-{$retention_days} days" ) );
 
 		$estimates = [];
 
@@ -381,7 +385,7 @@ class Maintenance {
 	 * Truncate a specific table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_key  The table key.
+	 * @param    string $table_key  The table key.
 	 * @return   bool  True if successful.
 	 */
 	public function truncate_table( string $table_key ): bool {
@@ -405,8 +409,8 @@ class Maintenance {
 	 * Export table data as CSV.
 	 *
 	 * @since    1.0.0
-	 * @param    string                $table_key  The table key.
-	 * @param    array<string, mixed>  $filters    Optional filters.
+	 * @param    string               $table_key  The table key.
+	 * @param    array<string, mixed> $filters    Optional filters.
 	 * @return   string|false  CSV content or false on failure.
 	 */
 	public function export_table_csv( string $table_key, array $filters = [] ): string|false {
@@ -416,20 +420,20 @@ class Maintenance {
 			return false;
 		}
 
-		$where = '1=1';
+		$where  = '1=1';
 		$values = [];
 
 		// Apply date filters if provided
 		if ( ! empty( $filters['date_from'] ) ) {
 			$date_column = $this->get_date_column( $table_key );
-			$where .= " AND {$date_column} >= %s";
-			$values[] = $filters['date_from'];
+			$where      .= " AND {$date_column} >= %s";
+			$values[]    = $filters['date_from'];
 		}
 
 		if ( ! empty( $filters['date_to'] ) ) {
 			$date_column = $this->get_date_column( $table_key );
-			$where .= " AND {$date_column} <= %s";
-			$values[] = $filters['date_to'];
+			$where      .= " AND {$date_column} <= %s";
+			$values[]    = $filters['date_to'];
 		}
 
 		$query = "SELECT * FROM {$table} WHERE {$where}";
@@ -472,7 +476,7 @@ class Maintenance {
 	 * Get the date column for a table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_key  The table key.
+	 * @param    string $table_key  The table key.
 	 */
 	private function get_date_column( string $table_key ): string {
 		$columns = [

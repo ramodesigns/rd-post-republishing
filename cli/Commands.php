@@ -72,8 +72,8 @@ class Commands {
 	 */
 	public function __construct() {
 		$this->repository = new Repository();
-		$this->engine = new Engine( $this->repository );
-		$this->query = new Query( $this->repository );
+		$this->engine     = new Engine( $this->repository );
+		$this->query      = new Query( $this->repository );
 	}
 
 	/**
@@ -101,8 +101,8 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function run( array $args, array $assoc_args ): void {
 		$force = Utils\get_flag_value( $assoc_args, 'force', false );
@@ -110,7 +110,7 @@ class Commands {
 
 		// Temporarily disable dry-run mode if force flag is set
 		if ( $force ) {
-			$settings = $this->repository->get_settings();
+			$settings         = $this->repository->get_settings();
 			$original_dry_run = $settings['dry_run_mode'] ?? false;
 			if ( $original_dry_run ) {
 				$settings['dry_run_mode'] = false;
@@ -174,8 +174,8 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function dry_run( array $args, array $assoc_args ): void {
 		$format = Utils\get_flag_value( $assoc_args, 'format', 'table' );
@@ -192,15 +192,18 @@ class Commands {
 		WP_CLI::success( sprintf( '%d posts would be republished.', count( $result['posts'] ) ) );
 
 		// Prepare data for display
-		$display_data = array_map( function ( $post ) {
-			return [
-				'ID'            => $post['post_id'],
-				'Title'         => substr( $post['post_title'], 0, 40 ),
-				'Type'          => $post['post_type'],
-				'Original Date' => $post['original_date'],
-				'New Date'      => $post['new_date'],
-			];
-		}, $result['posts'] );
+		$display_data = array_map(
+			function ( $post ) {
+				return [
+					'ID'            => $post['post_id'],
+					'Title'         => substr( $post['post_title'], 0, 40 ),
+					'Type'          => $post['post_type'],
+					'Original Date' => $post['original_date'],
+					'New Date'      => $post['new_date'],
+				];
+			},
+			$result['posts']
+		);
 
 		Utils\format_items( $format, $display_data, [ 'ID', 'Title', 'Type', 'Original Date', 'New Date' ] );
 	}
@@ -229,11 +232,11 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function cleanup( array $args, array $assoc_args ): void {
-		$days = (int) Utils\get_flag_value( $assoc_args, 'days', 365 );
+		$days         = (int) Utils\get_flag_value( $assoc_args, 'days', 365 );
 		$skip_confirm = Utils\get_flag_value( $assoc_args, 'yes', false );
 
 		if ( $days < 1 ) {
@@ -250,13 +253,15 @@ class Commands {
 
 		$total = ( $deleted['history'] ?? 0 ) + ( $deleted['audit'] ?? 0 ) + ( $deleted['api_log'] ?? 0 );
 
-		WP_CLI::success( sprintf(
-			'Cleanup complete. Deleted %d history, %d audit, %d API log records (total: %d).',
-			$deleted['history'] ?? 0,
-			$deleted['audit'] ?? 0,
-			$deleted['api_log'] ?? 0,
-			$total
-		) );
+		WP_CLI::success(
+			sprintf(
+				'Cleanup complete. Deleted %d history, %d audit, %d API log records (total: %d).',
+				$deleted['history'] ?? 0,
+				$deleted['audit'] ?? 0,
+				$deleted['api_log'] ?? 0,
+				$total
+			)
+		);
 	}
 
 	/**
@@ -280,26 +285,47 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function status( array $args, array $assoc_args ): void {
 		$format = Utils\get_flag_value( $assoc_args, 'format', 'table' );
 
-		$settings = $this->repository->get_settings();
-		$cron = new Cron( $this->repository );
+		$settings    = $this->repository->get_settings();
+		$cron        = new Cron( $this->repository );
 		$cron_status = $cron->get_status();
 
 		// Basic settings
 		WP_CLI::log( WP_CLI::colorize( '%BPlugin Settings:%n' ) );
 		$settings_data = [
-			[ 'Setting' => 'Enabled Post Types', 'Value' => implode( ', ', $settings['enabled_post_types'] ?? [] ) ],
-			[ 'Setting' => 'Daily Quota', 'Value' => sprintf( '%d (%s)', $settings['daily_quota_value'] ?? 5, $settings['daily_quota_type'] ?? 'number' ) ],
-			[ 'Setting' => 'Time Range', 'Value' => sprintf( '%02d:00 - %02d:00', $settings['republish_start_hour'] ?? 9, $settings['republish_end_hour'] ?? 17 ) ],
-			[ 'Setting' => 'Minimum Age', 'Value' => sprintf( '%d days', $settings['minimum_age_days'] ?? 30 ) ],
-			[ 'Setting' => 'WP Cron Enabled', 'Value' => ( $settings['wp_cron_enabled'] ?? true ) ? 'Yes' : 'No' ],
-			[ 'Setting' => 'Debug Mode', 'Value' => ( $settings['debug_mode'] ?? false ) ? 'Yes' : 'No' ],
-			[ 'Setting' => 'Dry-Run Mode', 'Value' => ( $settings['dry_run_mode'] ?? false ) ? 'Yes' : 'No' ],
+			[
+				'Setting' => 'Enabled Post Types',
+				'Value'   => implode( ', ', $settings['enabled_post_types'] ?? [] ),
+			],
+			[
+				'Setting' => 'Daily Quota',
+				'Value'   => sprintf( '%d (%s)', $settings['daily_quota_value'] ?? 5, $settings['daily_quota_type'] ?? 'number' ),
+			],
+			[
+				'Setting' => 'Time Range',
+				'Value'   => sprintf( '%02d:00 - %02d:00', $settings['republish_start_hour'] ?? 9, $settings['republish_end_hour'] ?? 17 ),
+			],
+			[
+				'Setting' => 'Minimum Age',
+				'Value'   => sprintf( '%d days', $settings['minimum_age_days'] ?? 30 ),
+			],
+			[
+				'Setting' => 'WP Cron Enabled',
+				'Value'   => ( $settings['wp_cron_enabled'] ?? true ) ? 'Yes' : 'No',
+			],
+			[
+				'Setting' => 'Debug Mode',
+				'Value'   => ( $settings['debug_mode'] ?? false ) ? 'Yes' : 'No',
+			],
+			[
+				'Setting' => 'Dry-Run Mode',
+				'Value'   => ( $settings['dry_run_mode'] ?? false ) ? 'Yes' : 'No',
+			],
 		];
 		Utils\format_items( $format, $settings_data, [ 'Setting', 'Value' ] );
 
@@ -308,9 +334,21 @@ class Commands {
 		// Cron status
 		WP_CLI::log( WP_CLI::colorize( '%BScheduled Events:%n' ) );
 		$cron_data = [
-			[ 'Event' => 'Daily Republishing', 'Status' => $cron_status['daily_republishing']['scheduled'] ? 'Scheduled' : 'Not scheduled', 'Next Run' => $cron_status['daily_republishing']['next_run'] ?? 'N/A' ],
-			[ 'Event' => 'Retry Failed', 'Status' => $cron_status['retry']['scheduled'] ? 'Scheduled' : 'Not scheduled', 'Next Run' => $cron_status['retry']['next_run'] ?? 'N/A' ],
-			[ 'Event' => 'Daily Cleanup', 'Status' => $cron_status['cleanup']['scheduled'] ? 'Scheduled' : 'Not scheduled', 'Next Run' => $cron_status['cleanup']['next_run'] ?? 'N/A' ],
+			[
+				'Event'    => 'Daily Republishing',
+				'Status'   => $cron_status['daily_republishing']['scheduled'] ? 'Scheduled' : 'Not scheduled',
+				'Next Run' => $cron_status['daily_republishing']['next_run'] ?? 'N/A',
+			],
+			[
+				'Event'    => 'Retry Failed',
+				'Status'   => $cron_status['retry']['scheduled'] ? 'Scheduled' : 'Not scheduled',
+				'Next Run' => $cron_status['retry']['next_run'] ?? 'N/A',
+			],
+			[
+				'Event'    => 'Daily Cleanup',
+				'Status'   => $cron_status['cleanup']['scheduled'] ? 'Scheduled' : 'Not scheduled',
+				'Next Run' => $cron_status['cleanup']['next_run'] ?? 'N/A',
+			],
 		];
 		Utils\format_items( $format, $cron_data, [ 'Event', 'Status', 'Next Run' ] );
 
@@ -318,25 +356,33 @@ class Commands {
 
 		// Recent activity
 		WP_CLI::log( WP_CLI::colorize( '%BRecent Activity:%n' ) );
-		$today_count = $this->repository->get_today_republish_count();
+		$today_count   = $this->repository->get_today_republish_count();
 		$total_history = $this->repository->get_history_count();
 
 		$activity_data = [
-			[ 'Metric' => 'Republished Today', 'Value' => (string) $today_count ],
-			[ 'Metric' => 'Total History Records', 'Value' => (string) $total_history ],
+			[
+				'Metric' => 'Republished Today',
+				'Value'  => (string) $today_count,
+			],
+			[
+				'Metric' => 'Total History Records',
+				'Value'  => (string) $total_history,
+			],
 		];
 		Utils\format_items( $format, $activity_data, [ 'Metric', 'Value' ] );
 
 		// Eligible posts preview
 		$eligible = $this->query->get_eligible_posts( $settings );
-		$quota = $this->query->calculate_quota( $settings );
+		$quota    = $this->query->calculate_quota( $settings );
 
 		WP_CLI::log( '' );
-		WP_CLI::log( sprintf(
-			'Eligible posts: %d (quota: %d)',
-			count( $eligible ),
-			$quota
-		) );
+		WP_CLI::log(
+			sprintf(
+				'Eligible posts: %d (quota: %d)',
+				count( $eligible ),
+				$quota
+			)
+		);
 	}
 
 	/**
@@ -365,35 +411,41 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function history( array $args, array $assoc_args ): void {
 		$status = Utils\get_flag_value( $assoc_args, 'status', null );
-		$limit = (int) Utils\get_flag_value( $assoc_args, 'limit', 20 );
+		$limit  = (int) Utils\get_flag_value( $assoc_args, 'limit', 20 );
 		$format = Utils\get_flag_value( $assoc_args, 'format', 'table' );
 
-		$history = $this->repository->get_history( [
-			'status' => $status,
-			'limit'  => $limit,
-		] );
+		$history = $this->repository->get_history(
+			[
+				'status' => $status,
+				'limit'  => $limit,
+			]
+		);
 
 		if ( empty( $history ) ) {
 			WP_CLI::warning( 'No history records found.' );
 			return;
 		}
 
-		$display_data = array_map( function ( $record ) {
-			$post = get_post( $record->post_id );
-			return [
-				'ID'          => $record->id,
-				'Post ID'     => $record->post_id,
-				'Title'       => $post ? substr( $post->post_title, 0, 30 ) : '(deleted)',
-				'Status'      => $record->status,
-				'Trigger'     => $record->triggered_by,
-				'Date'        => $record->created_at,
-			];
-		}, $history );
+		$display_data = array_map(
+			function ( object $record ): array {
+				/** @var object{post_id: int|string, id: int|string, status: string, triggered_by: string, created_at: string} $record */
+				$post = get_post( (int) $record->post_id );
+				return [
+					'ID'      => $record->id,
+					'Post ID' => $record->post_id,
+					'Title'   => $post instanceof \WP_Post ? substr( $post->post_title, 0, 30 ) : '(deleted)',
+					'Status'  => $record->status,
+					'Trigger' => $record->triggered_by,
+					'Date'    => $record->created_at,
+				];
+			},
+			$history
+		);
 
 		Utils\format_items( $format, $display_data, [ 'ID', 'Post ID', 'Title', 'Status', 'Trigger', 'Date' ] );
 	}
@@ -410,8 +462,8 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function reschedule( array $args, array $assoc_args ): void {
 		$cron = new Cron( $this->repository );
@@ -420,10 +472,12 @@ class Commands {
 		$status = $cron->get_status();
 
 		WP_CLI::success( 'Cron events rescheduled.' );
-		WP_CLI::log( sprintf(
-			'Next daily republishing: %s',
-			$status['daily_republishing']['next_run'] ?? 'Not scheduled'
-		) );
+		WP_CLI::log(
+			sprintf(
+				'Next daily republishing: %s',
+				$status['daily_republishing']['next_run'] ?? 'Not scheduled'
+			)
+		);
 	}
 
 	/**
@@ -443,22 +497,34 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function db_status( array $args, array $assoc_args ): void {
 		$format = Utils\get_flag_value( $assoc_args, 'format', 'table' );
 
 		$migrator = new Migrator();
-		$status = $migrator->get_status();
+		$status   = $migrator->get_status();
 
 		WP_CLI::log( WP_CLI::colorize( '%BDatabase Migration Status:%n' ) );
 
 		$data = [
-			[ 'Property' => 'Installed Version', 'Value' => $status['installed_version'] ],
-			[ 'Property' => 'Current Version', 'Value' => $status['current_version'] ],
-			[ 'Property' => 'Needs Migration', 'Value' => $status['needs_migration'] ? 'Yes' : 'No' ],
-			[ 'Property' => 'Pending Migrations', 'Value' => empty( $status['pending_migrations'] ) ? 'None' : implode( ', ', $status['pending_migrations'] ) ],
+			[
+				'Property' => 'Installed Version',
+				'Value'    => $status['installed_version'],
+			],
+			[
+				'Property' => 'Current Version',
+				'Value'    => $status['current_version'],
+			],
+			[
+				'Property' => 'Needs Migration',
+				'Value'    => $status['needs_migration'] ? 'Yes' : 'No',
+			],
+			[
+				'Property' => 'Pending Migrations',
+				'Value'    => empty( $status['pending_migrations'] ) ? 'None' : implode( ', ', $status['pending_migrations'] ),
+			],
 		];
 
 		Utils\format_items( $format, $data, [ 'Property', 'Value' ] );
@@ -493,11 +559,11 @@ class Commands {
 	 *
 	 * @when after_wp_load
 	 *
-	 * @param array<int, string>    $args       Positional arguments.
-	 * @param array<string, mixed>  $assoc_args Associative arguments.
+	 * @param array<int, string>   $args       Positional arguments.
+	 * @param array<string, mixed> $assoc_args Associative arguments.
 	 */
 	public function db_migrate( array $args, array $assoc_args ): void {
-		$force = Utils\get_flag_value( $assoc_args, 'force', false );
+		$force        = Utils\get_flag_value( $assoc_args, 'force', false );
 		$skip_confirm = Utils\get_flag_value( $assoc_args, 'yes', false );
 
 		$migrator = new Migrator();
@@ -517,11 +583,13 @@ class Commands {
 				return;
 			}
 
-			WP_CLI::log( sprintf(
-				'Migrating from version %s to %s...',
-				$status['installed_version'],
-				$status['current_version']
-			) );
+			WP_CLI::log(
+				sprintf(
+					'Migrating from version %s to %s...',
+					$status['installed_version'],
+					$status['current_version']
+				)
+			);
 
 			$result = $migrator->maybe_migrate();
 		}
@@ -533,15 +601,15 @@ class Commands {
 
 		// Report results
 		$successful = 0;
-		$failed = 0;
+		$failed     = 0;
 
 		foreach ( $result['migrations_run'] as $version => $migration_result ) {
 			if ( $migration_result['success'] ) {
 				WP_CLI::log( sprintf( '  ✓ Migrated to %s', $version ) );
-				$successful++;
+				++$successful;
 			} else {
 				WP_CLI::warning( sprintf( '  ✗ Migration to %s failed: %s', $version, $migration_result['error'] ?? 'Unknown error' ) );
-				$failed++;
+				++$failed;
 			}
 		}
 
@@ -563,7 +631,7 @@ class Commands {
 		$display_data = [];
 
 		foreach ( $posts as $post ) {
-			$status_color = 'success' === $post['status'] ? '%G' : '%R';
+			$status_color   = 'success' === $post['status'] ? '%G' : '%R';
 			$display_data[] = [
 				'ID'     => $post['post_id'],
 				'Title'  => substr( $post['post_title'] ?? '', 0, 40 ),

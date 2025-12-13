@@ -74,17 +74,17 @@ class Engine {
 	 * Initialize the engine.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
-	 * @param    Query|null       $query       Optional query instance.
-	 * @param    Cache|null       $cache       Optional cache instance.
+	 * @param    Repository|null $repository  Optional repository instance.
+	 * @param    Query|null      $query       Optional query instance.
+	 * @param    Cache|null      $cache       Optional cache instance.
 	 */
 	public function __construct( ?Repository $repository = null, ?Query $query = null, ?Cache $cache = null ) {
 		global $wpdb;
-		$this->wpdb = $wpdb;
+		$this->wpdb       = $wpdb;
 		$this->repository = $repository ?? new Repository();
-		$this->query = $query ?? new Query( $this->repository );
-		$this->cache = $cache ?? new Cache();
-		$this->timezone = wp_timezone();
+		$this->query      = $query ?? new Query( $this->repository );
+		$this->cache      = $cache ?? new Cache();
+		$this->timezone   = wp_timezone();
 	}
 
 	/**
@@ -93,11 +93,11 @@ class Engine {
 	 * Main entry point for cron and API triggered republishing.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $triggered_by  Trigger source: cron, api, manual.
+	 * @param    string $triggered_by  Trigger source: cron, api, manual.
 	 * @return   array<string, mixed>  Results array with success/failure details.
 	 */
 	public function execute_batch( string $triggered_by = 'cron' ): array {
-		$settings = $this->repository->get_settings();
+		$settings   = $this->repository->get_settings();
 		$start_time = microtime( true );
 
 		// Check dry-run mode
@@ -140,8 +140,8 @@ class Engine {
 			// Process each post
 			$results = [];
 			foreach ( $posts as $index => $post ) {
-				$new_time = $scheduled_times[ $index ] ?? $scheduled_times[0];
-				$result = $this->republish_single_post(
+				$new_time  = $scheduled_times[ $index ] ?? $scheduled_times[0];
+				$result    = $this->republish_single_post(
 					(int) $post->ID,
 					$new_time,
 					$triggered_by
@@ -162,20 +162,20 @@ class Engine {
 			$this->release_lock();
 
 			$successful = array_filter( $results, fn( $r ) => 'success' === $r['status'] );
-			$failed = array_filter( $results, fn( $r ) => 'failed' === $r['status'] );
+			$failed     = array_filter( $results, fn( $r ) => 'failed' === $r['status'] );
 
 			return [
-				'success'        => true,
-				'message'        => sprintf(
+				'success'    => true,
+				'message'    => sprintf(
 					'Republished %d posts successfully, %d failed.',
 					count( $successful ),
 					count( $failed )
 				),
-				'posts'          => $results,
-				'total'          => count( $results ),
-				'successful'     => count( $successful ),
-				'failed'         => count( $failed ),
-				'duration'       => microtime( true ) - $start_time,
+				'posts'      => $results,
+				'total'      => count( $results ),
+				'successful' => count( $successful ),
+				'failed'     => count( $failed ),
+				'duration'   => microtime( true ) - $start_time,
 			];
 		} catch ( \Exception $e ) {
 			$this->release_lock();
@@ -196,7 +196,7 @@ class Engine {
 	 */
 	public function execute_dry_run(): array {
 		$settings = $this->repository->get_settings();
-		$posts = $this->query->get_eligible_posts( $settings );
+		$posts    = $this->query->get_eligible_posts( $settings );
 
 		$scheduled_times = $this->generate_scheduled_times(
 			count( $posts ),
@@ -207,7 +207,7 @@ class Engine {
 
 		$preview = [];
 		foreach ( $posts as $index => $post ) {
-			$new_time = $scheduled_times[ $index ] ?? $scheduled_times[0];
+			$new_time  = $scheduled_times[ $index ] ?? $scheduled_times[0];
 			$preview[] = [
 				'post_id'       => (int) $post->ID,
 				'post_title'    => $post->post_title,
@@ -219,11 +219,11 @@ class Engine {
 		}
 
 		return [
-			'success'  => true,
-			'dry_run'  => true,
-			'message'  => sprintf( 'Dry-run: %d posts would be republished.', count( $preview ) ),
-			'posts'    => $preview,
-			'total'    => count( $preview ),
+			'success' => true,
+			'dry_run' => true,
+			'message' => sprintf( 'Dry-run: %d posts would be republished.', count( $preview ) ),
+			'posts'   => $preview,
+			'total'   => count( $preview ),
 		];
 	}
 
@@ -231,9 +231,9 @@ class Engine {
 	 * Republish a single post.
 	 *
 	 * @since    1.0.0
-	 * @param    int     $post_id       The post ID to republish.
-	 * @param    string  $new_datetime  The new publish datetime.
-	 * @param    string  $triggered_by  Trigger source: cron, api, manual.
+	 * @param    int    $post_id       The post ID to republish.
+	 * @param    string $new_datetime  The new publish datetime.
+	 * @param    string $triggered_by  Trigger source: cron, api, manual.
 	 * @return   array<string, mixed>  Result array.
 	 */
 	public function republish_single_post(
@@ -242,7 +242,7 @@ class Engine {
 		string $triggered_by = 'manual'
 	): array {
 		$start_time = microtime( true );
-		$post = get_post( $post_id );
+		$post       = get_post( $post_id );
 
 		if ( ! $post ) {
 			return [
@@ -266,13 +266,13 @@ class Engine {
 
 		// Calculate GMT datetime
 		$local_datetime = new DateTimeImmutable( $new_datetime, $this->timezone );
-		$gmt_datetime = $local_datetime->setTimezone( new DateTimeZone( 'UTC' ) );
-		$new_date_gmt = $gmt_datetime->format( 'Y-m-d H:i:s' );
+		$gmt_datetime   = $local_datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+		$new_date_gmt   = $gmt_datetime->format( 'Y-m-d H:i:s' );
 
 		// Current time for post_modified
-		$now = new DateTimeImmutable( 'now', $this->timezone );
-		$now_gmt = $now->setTimezone( new DateTimeZone( 'UTC' ) );
-		$modified_date = $now->format( 'Y-m-d H:i:s' );
+		$now               = new DateTimeImmutable( 'now', $this->timezone );
+		$now_gmt           = $now->setTimezone( new DateTimeZone( 'UTC' ) );
+		$modified_date     = $now->format( 'Y-m-d H:i:s' );
 		$modified_date_gmt = $now_gmt->format( 'Y-m-d H:i:s' );
 
 		// Update the post in the database
@@ -381,7 +381,7 @@ class Engine {
 		}
 
 		$settings = $this->repository->get_settings();
-		$results = [];
+		$results  = [];
 
 		foreach ( $failed_records as $record ) {
 			// Mark as retrying
@@ -413,10 +413,10 @@ class Engine {
 	 * Generate scheduled times for a batch of posts.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $count            Number of times to generate.
-	 * @param    int   $start_hour       Start hour (0-23).
-	 * @param    int   $end_hour         End hour (0-23).
-	 * @param    bool  $maintain_order   Whether to maintain chronological order.
+	 * @param    int  $count            Number of times to generate.
+	 * @param    int  $start_hour       Start hour (0-23).
+	 * @param    int  $end_hour         End hour (0-23).
+	 * @param    bool $maintain_order   Whether to maintain chronological order.
 	 * @return   array<int, string>      Array of datetime strings.
 	 */
 	private function generate_scheduled_times(
@@ -449,13 +449,13 @@ class Engine {
 	 * Uses site timezone and handles DST properly.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $start_hour  Start hour (0-23).
-	 * @param    int  $end_hour    End hour (0-23).
+	 * @param    int $start_hour  Start hour (0-23).
+	 * @param    int $end_hour    End hour (0-23).
 	 */
 	private function generate_random_time( int $start_hour, int $end_hour ): string {
 		// Ensure valid range
 		$start_hour = max( 0, min( 23, $start_hour ) );
-		$end_hour = max( 0, min( 23, $end_hour ) );
+		$end_hour   = max( 0, min( 23, $end_hour ) );
 
 		// Handle case where end is before start (e.g., 22:00 to 06:00)
 		if ( $end_hour <= $start_hour ) {
@@ -473,7 +473,7 @@ class Engine {
 		$random_second = random_int( 0, 59 );
 
 		// Create datetime in site timezone
-		$now = new DateTimeImmutable( 'now', $this->timezone );
+		$now       = new DateTimeImmutable( 'now', $this->timezone );
 		$scheduled = $now->setTime( $random_hour, $random_minute, $random_second );
 
 		return $scheduled->format( 'Y-m-d H:i:s' );
@@ -486,7 +486,7 @@ class Engine {
 	 * including WordPress core and third-party plugin caches.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 */
 	private function clear_post_caches( int $post_id ): void {
 		$this->cache->clear_post_cache( $post_id );
@@ -498,8 +498,8 @@ class Engine {
 	 * Notifies WordPress and other plugins that a post has been "republished".
 	 *
 	 * @since    1.0.0
-	 * @param    int       $post_id  The post ID.
-	 * @param    \WP_Post  $post     The post object.
+	 * @param    int      $post_id  The post ID.
+	 * @param    \WP_Post $post     The post object.
 	 */
 	private function trigger_publication_hooks( int $post_id, \WP_Post $post ): void {
 		// Refresh post object from database
@@ -623,7 +623,7 @@ class Engine {
 		}
 
 		$lock_time = is_numeric( $lock ) ? (int) $lock : 0;
-		$age = time() - $lock_time;
+		$age       = time() - $lock_time;
 
 		return [
 			'locked' => $age <= self::LOCK_TIMEOUT,

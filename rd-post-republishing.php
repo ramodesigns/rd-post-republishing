@@ -64,34 +64,36 @@ if ( file_exists( $autoloader ) ) {
 	require_once $autoloader;
 } else {
 	// Fallback manual autoloader for development without Composer
-	spl_autoload_register( static function ( string $class ): void {
-		$prefix = 'WPR\\Republisher\\';
+	spl_autoload_register(
+		static function ( string $class ): void {
+			$prefix = 'WPR\\Republisher\\';
 
-		$len = strlen( $prefix );
-		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
-			return;
-		}
+			$len = strlen( $prefix );
+			if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+				return;
+			}
 
-		$relative_class = substr( $class, $len );
+			$relative_class = substr( $class, $len );
 
-		// Map namespaces to directories
-		$namespace_map = [
-			'CLI\\'      => RD_POST_REPUBLISHING_PATH . 'cli/',
-			''           => RD_POST_REPUBLISHING_PATH . 'includes/',
-		];
+			// Map namespaces to directories
+			$namespace_map = [
+				'CLI\\' => RD_POST_REPUBLISHING_PATH . 'cli/',
+				''      => RD_POST_REPUBLISHING_PATH . 'includes/',
+			];
 
-		foreach ( $namespace_map as $namespace => $base_dir ) {
-			if ( '' === $namespace || strncmp( $namespace, $relative_class, strlen( $namespace ) ) === 0 ) {
-				$class_name = '' === $namespace ? $relative_class : substr( $relative_class, strlen( $namespace ) );
-				$file = $base_dir . str_replace( '\\', '/', $class_name ) . '.php';
+			foreach ( $namespace_map as $namespace => $base_dir ) {
+				if ( '' === $namespace || strncmp( $namespace, $relative_class, strlen( $namespace ) ) === 0 ) {
+					$class_name = '' === $namespace ? $relative_class : substr( $relative_class, strlen( $namespace ) );
+					$file       = $base_dir . str_replace( '\\', '/', $class_name ) . '.php';
 
-				if ( file_exists( $file ) ) {
-					require_once $file;
-					return;
+					if ( file_exists( $file ) ) {
+						require_once $file;
+						return;
+					}
 				}
 			}
 		}
-	} );
+	);
 }
 
 /**

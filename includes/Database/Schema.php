@@ -73,7 +73,7 @@ class Schema {
 	 */
 	public function __construct() {
 		global $wpdb;
-		$this->wpdb = $wpdb;
+		$this->wpdb   = $wpdb;
 		$this->prefix = $wpdb->prefix . 'wpr_';
 
 		$this->tables = [
@@ -94,7 +94,7 @@ class Schema {
 
 		$charset_collate = $this->wpdb->get_charset_collate();
 
-		$results = [];
+		$results   = [];
 		$results[] = $this->create_history_table( $charset_collate );
 		$results[] = $this->create_audit_table( $charset_collate );
 		$results[] = $this->create_api_log_table( $charset_collate );
@@ -109,7 +109,7 @@ class Schema {
 	 * Create the history table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $charset_collate  Database charset/collation.
+	 * @param    string $charset_collate  Database charset/collation.
 	 */
 	private function create_history_table( string $charset_collate ): bool {
 		$table = $this->tables['history'];
@@ -142,7 +142,7 @@ class Schema {
 	 * Create the audit table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $charset_collate  Database charset/collation.
+	 * @param    string $charset_collate  Database charset/collation.
 	 */
 	private function create_audit_table( string $charset_collate ): bool {
 		$table = $this->tables['audit'];
@@ -173,7 +173,7 @@ class Schema {
 	 * Create the API log table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $charset_collate  Database charset/collation.
+	 * @param    string $charset_collate  Database charset/collation.
 	 */
 	private function create_api_log_table( string $charset_collate ): bool {
 		$table = $this->tables['api_log'];
@@ -221,7 +221,7 @@ class Schema {
 	 * Check if a table exists.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_key  The table key (history, audit, api_log).
+	 * @param    string $table_key  The table key (history, audit, api_log).
 	 */
 	public function table_exists( string $table_key ): bool {
 		if ( ! isset( $this->tables[ $table_key ] ) ) {
@@ -271,7 +271,7 @@ class Schema {
 	 * Get table name by key.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $key  The table key.
+	 * @param    string $key  The table key.
 	 */
 	public function get_table_name( string $key ): ?string {
 		return $this->tables[ $key ] ?? null;
@@ -297,7 +297,7 @@ class Schema {
 		$status = [];
 
 		foreach ( $this->tables as $key => $table ) {
-			$exists = $this->table_exists( $key );
+			$exists    = $this->table_exists( $key );
 			$row_count = 0;
 			$data_size = 0;
 
@@ -307,11 +307,11 @@ class Schema {
 
 				// Get table size
 				$size_query = $this->wpdb->prepare(
-					"SELECT
+					'SELECT
 						ROUND(((data_length + index_length) / 1024), 2) AS size_kb
 					FROM information_schema.TABLES
 					WHERE table_schema = %s
-					AND table_name = %s",
+					AND table_name = %s',
 					DB_NAME,
 					$table
 				);
@@ -335,7 +335,7 @@ class Schema {
 	 * Verify table structure matches expected schema.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_key  The table key.
+	 * @param    string $table_key  The table key.
 	 * @return   array<string, mixed>  Verification results.
 	 */
 	public function verify_table_structure( string $table_key ): array {
@@ -347,15 +347,15 @@ class Schema {
 			];
 		}
 
-		$table = $this->tables[ $table_key ];
+		$table            = $this->tables[ $table_key ];
 		$expected_columns = $this->get_expected_columns( $table_key );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$actual_columns = $this->wpdb->get_results( "DESCRIBE {$table}", ARRAY_A );
 
 		$actual_column_names = array_column( $actual_columns, 'Field' );
-		$missing = array_diff( $expected_columns, $actual_column_names );
-		$extra = array_diff( $actual_column_names, $expected_columns );
+		$missing             = array_diff( $expected_columns, $actual_column_names );
+		$extra               = array_diff( $actual_column_names, $expected_columns );
 
 		return [
 			'valid'           => empty( $missing ),
@@ -370,21 +370,41 @@ class Schema {
 	 * Get expected columns for a table.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_key  The table key.
+	 * @param    string $table_key  The table key.
 	 * @return   array<int, string>
 	 */
 	private function get_expected_columns( string $table_key ): array {
 		$columns = [
 			'history' => [
-				'id', 'post_id', 'post_type', 'original_date', 'republish_date',
-				'status', 'error_message', 'execution_time', 'triggered_by', 'created_at',
+				'id',
+				'post_id',
+				'post_type',
+				'original_date',
+				'republish_date',
+				'status',
+				'error_message',
+				'execution_time',
+				'triggered_by',
+				'created_at',
 			],
-			'audit' => [
-				'id', 'user_id', 'action', 'setting_key', 'old_value',
-				'new_value', 'ip_address', 'user_agent', 'timestamp',
+			'audit'   => [
+				'id',
+				'user_id',
+				'action',
+				'setting_key',
+				'old_value',
+				'new_value',
+				'ip_address',
+				'user_agent',
+				'timestamp',
 			],
 			'api_log' => [
-				'id', 'ip_address', 'user_id', 'endpoint', 'response_code', 'request_timestamp',
+				'id',
+				'ip_address',
+				'user_id',
+				'endpoint',
+				'response_code',
+				'request_timestamp',
 			],
 		];
 
@@ -403,7 +423,7 @@ class Schema {
 		foreach ( $this->tables as $key => $table ) {
 			if ( $this->table_exists( $key ) ) {
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$result = $this->wpdb->query( "OPTIMIZE TABLE {$table}" );
+				$result          = $this->wpdb->query( "OPTIMIZE TABLE {$table}" );
 				$results[ $key ] = false !== $result;
 			}
 		}

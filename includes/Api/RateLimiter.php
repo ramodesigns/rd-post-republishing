@@ -77,21 +77,21 @@ class RateLimiter {
 	 * Initialize the rate limiter.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository   Optional repository instance.
-	 * @param    int|null         $window       Optional rate limit window in seconds.
-	 * @param    int              $max_requests Maximum requests per window.
+	 * @param    Repository|null $repository   Optional repository instance.
+	 * @param    int|null        $window       Optional rate limit window in seconds.
+	 * @param    int             $max_requests Maximum requests per window.
 	 */
 	public function __construct(
 		?Repository $repository = null,
 		?int $window = null,
 		int $max_requests = self::DEFAULT_MAX_REQUESTS
 	) {
-		$this->repository = $repository ?? new Repository();
+		$this->repository   = $repository ?? new Repository();
 		$this->max_requests = max( 1, $max_requests );
 
 		if ( null === $window ) {
 			// Load from settings
-			$settings = $this->repository->get_settings();
+			$settings             = $this->repository->get_settings();
 			$this->window_seconds = max(
 				self::MIN_WINDOW,
 				(int) ( $settings['api_rate_limit_seconds'] ?? self::DEFAULT_WINDOW )
@@ -141,7 +141,7 @@ class RateLimiter {
 	 * @return   array<string, mixed>  Rate limit status information.
 	 */
 	public function get_status( string $endpoint, ?int $user_id = null ): array {
-		$is_limited = $this->is_limited( $endpoint, $user_id );
+		$is_limited   = $this->is_limited( $endpoint, $user_id );
 		$next_allowed = $this->get_next_allowed_time( $endpoint, $user_id );
 
 		return [
@@ -182,7 +182,7 @@ class RateLimiter {
 	private function get_last_request_time( string $endpoint, ?int $user_id = null ): int {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'wpr_api_log';
+		$table      = $wpdb->prefix . 'wpr_api_log';
 		$ip_address = $this->get_client_ip();
 
 		if ( null !== $user_id && $user_id > 0 ) {
@@ -272,7 +272,7 @@ class RateLimiter {
 	 * Set the rate limit window.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $seconds  Window in seconds.
+	 * @param    int $seconds  Window in seconds.
 	 */
 	public function set_window( int $seconds ): void {
 		$this->window_seconds = max( self::MIN_WINDOW, $seconds );
@@ -317,7 +317,7 @@ class RateLimiter {
 				// Handle comma-separated IPs
 				if ( str_contains( $ip, ',' ) ) {
 					$ips = explode( ',', $ip );
-					$ip = trim( $ips[0] );
+					$ip  = trim( $ips[0] );
 				}
 				if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
 					return $ip;

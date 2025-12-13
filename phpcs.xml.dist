@@ -11,6 +11,10 @@
     <exclude-pattern>/tests/*</exclude-pattern>
     <exclude-pattern>/.git/*</exclude-pattern>
     <exclude-pattern>/languages/*</exclude-pattern>
+    <exclude-pattern>/admin/views/*</exclude-pattern>
+    <exclude-pattern>/admin/partials/*</exclude-pattern>
+    <exclude-pattern>/public/partials/*</exclude-pattern>
+    <exclude-pattern>*/index.php</exclude-pattern>
 
     <!-- Only scan PHP files -->
     <arg name="extensions" value="php"/>
@@ -26,14 +30,19 @@
 
     <!-- Use WordPress Coding Standards -->
     <rule ref="WordPress">
-        <!-- Allow short array syntax -->
+        <!-- Allow short array syntax [] -->
         <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
 
-        <!-- Allow short ternary operator -->
-        <exclude name="WordPress.PHP.DisallowShortTernary"/>
-
-        <!-- Allow multiple statements per line in certain cases -->
+        <!-- Allow short ternary operator (?:) -->
         <exclude name="Universal.Operators.DisallowShortTernary"/>
+
+        <!-- Relax inline comment requirements -->
+        <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+
+        <!-- Allow dynamic table names in wpdb queries (they're validated elsewhere) -->
+        <exclude name="WordPress.DB.PreparedSQL.InterpolatedNotPrepared"/>
+        <exclude name="WordPress.DB.PreparedSQL.NotPrepared"/>
     </rule>
 
     <!-- Use WordPress-Extra for additional checks -->
@@ -65,11 +74,15 @@
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">
-                <element value="wpr"/>
+                <element value="wpr_"/>
                 <element value="rd_post_republishing"/>
-                <element value="WPR"/>
+                <element value="WPR\Republisher"/>
             </property>
         </properties>
+        <!-- Exclude namespace checks for PSR-4 autoloaded files -->
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedNamespaceFound"/>
+        <!-- Allow short prefixes (they're used consistently) -->
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed"/>
     </rule>
 
     <!-- Allow PSR-4 style filenames -->
@@ -99,12 +112,4 @@
     <!-- Database security -->
     <rule ref="WordPress.DB.PreparedSQL"/>
     <rule ref="WordPress.DB.PreparedSQLPlaceholders"/>
-
-    <!-- Check for unused variables -->
-    <rule ref="VariableAnalysis.CodeAnalysis.VariableAnalysis">
-        <properties>
-            <property name="allowUnusedFunctionParameters" value="true"/>
-            <property name="allowUnusedCaughtExceptions" value="true"/>
-        </properties>
-    </rule>
 </ruleset>

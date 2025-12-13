@@ -42,6 +42,10 @@ if ( ! file_exists( $autoloader ) ) {
 
 require_once $autoloader;
 
+// Import Brain\Monkey namespace
+use Brain\Monkey;
+use Brain\Monkey\Functions;
+
 // Initialize Brain Monkey
 Monkey\setUp();
 

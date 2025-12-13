@@ -37,10 +37,10 @@ class Logger {
 	 *
 	 * @since    1.0.0
 	 */
-	public const LEVEL_DEBUG = 'debug';
-	public const LEVEL_INFO = 'info';
+	public const LEVEL_DEBUG   = 'debug';
+	public const LEVEL_INFO    = 'info';
 	public const LEVEL_WARNING = 'warning';
-	public const LEVEL_ERROR = 'error';
+	public const LEVEL_ERROR   = 'error';
 
 	/**
 	 * Log prefix for identifying plugin logs.
@@ -74,11 +74,11 @@ class Logger {
 	 * Initialize the logger.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
+	 * @param    Repository|null $repository  Optional repository instance.
 	 */
 	public function __construct( ?Repository $repository = null ) {
 		$this->repository = $repository ?? new Repository();
-		$settings = $this->repository->get_settings();
+		$settings         = $this->repository->get_settings();
 		$this->debug_mode = ! empty( $settings['debug_mode'] );
 	}
 
@@ -86,7 +86,7 @@ class Logger {
 	 * Get singleton instance.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
+	 * @param    Repository|null $repository  Optional repository instance.
 	 */
 	public static function get_instance( ?Repository $repository = null ): self {
 		if ( null === self::$instance ) {
@@ -199,7 +199,13 @@ class Logger {
 	public function api_event( string $endpoint, int $status, array $context = [] ): void {
 		$this->debug(
 			sprintf( 'API [%s]: HTTP %d', $endpoint, $status ),
-			array_merge( [ 'endpoint' => $endpoint, 'http_status' => $status ], $context )
+			array_merge(
+				[
+					'endpoint'    => $endpoint,
+					'http_status' => $status,
+				],
+				$context
+			)
 		);
 	}
 
@@ -216,7 +222,16 @@ class Logger {
 			? sprintf( 'Cache [%s] for post %d', $operation, $post_id )
 			: sprintf( 'Cache [%s]', $operation );
 
-		$this->debug( $message, array_merge( [ 'operation' => $operation, 'post_id' => $post_id ], $results ) );
+		$this->debug(
+			$message,
+			array_merge(
+				[
+					'operation' => $operation,
+					'post_id'   => $post_id,
+				],
+				$results
+			)
+		);
 	}
 
 	/**
@@ -230,7 +245,13 @@ class Logger {
 	public function db_event( string $operation, string $table, array $context = [] ): void {
 		$this->debug(
 			sprintf( 'DB [%s]: %s', $operation, $table ),
-			array_merge( [ 'operation' => $operation, 'table' => $table ], $context )
+			array_merge(
+				[
+					'operation' => $operation,
+					'table'     => $table,
+				],
+				$context
+			)
 		);
 	}
 
@@ -281,7 +302,7 @@ class Logger {
 	 * @param    array<string, mixed> $context  Additional context.
 	 */
 	private function format_message( string $level, string $message, array $context = [] ): string {
-		$timestamp = wp_date( 'Y-m-d H:i:s' );
+		$timestamp   = wp_date( 'Y-m-d H:i:s' );
 		$level_upper = strtoupper( $level );
 
 		$formatted = sprintf(
@@ -312,7 +333,7 @@ class Logger {
 	 * Set debug mode.
 	 *
 	 * @since    1.0.0
-	 * @param    bool  $enabled  Whether to enable debug mode.
+	 * @param    bool $enabled  Whether to enable debug mode.
 	 */
 	public function set_debug_mode( bool $enabled ): void {
 		$this->debug_mode = $enabled;
@@ -330,7 +351,7 @@ class Logger {
 
 		while ( $bytes >= 1024 && $index < count( $units ) - 1 ) {
 			$bytes /= 1024;
-			$index++;
+			++$index;
 		}
 
 		return round( $bytes, 2 ) . ' ' . $units[ $index ];
@@ -348,7 +369,7 @@ class Logger {
 
 		while ( $bytes >= 1024 && $index < count( $units ) - 1 ) {
 			$bytes /= 1024;
-			$index++;
+			++$index;
 		}
 
 		return round( $bytes, 2 ) . ' ' . $units[ $index ];

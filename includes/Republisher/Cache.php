@@ -36,7 +36,7 @@ class Cache {
 	 * known third-party caching plugins.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID to clear cache for.
+	 * @param    int $post_id  The post ID to clear cache for.
 	 * @return   array<string, bool>  Results of cache clearing attempts.
 	 */
 	public function clear_post_cache( int $post_id ): array {
@@ -46,12 +46,12 @@ class Cache {
 		$results['wp_core'] = $this->clear_wp_core_cache( $post_id );
 
 		// Clear third-party plugin caches
-		$results['wp_rocket'] = $this->clear_wp_rocket_cache( $post_id );
-		$results['w3tc'] = $this->clear_w3tc_cache( $post_id );
+		$results['wp_rocket']      = $this->clear_wp_rocket_cache( $post_id );
+		$results['w3tc']           = $this->clear_w3tc_cache( $post_id );
 		$results['wp_super_cache'] = $this->clear_wp_super_cache( $post_id );
-		$results['litespeed'] = $this->clear_litespeed_cache( $post_id );
-		$results['wp_fastest'] = $this->clear_wp_fastest_cache( $post_id );
-		$results['autoptimize'] = $this->clear_autoptimize_cache();
+		$results['litespeed']      = $this->clear_litespeed_cache( $post_id );
+		$results['wp_fastest']     = $this->clear_wp_fastest_cache( $post_id );
+		$results['autoptimize']    = $this->clear_autoptimize_cache();
 
 		/**
 		 * Filter cache clearing results.
@@ -80,7 +80,7 @@ class Cache {
 	 * Clear WordPress core caches for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True on success.
 	 */
 	private function clear_wp_core_cache( int $post_id ): bool {
@@ -116,7 +116,7 @@ class Cache {
 	 * Clear WP Rocket cache for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True if cleared, false if plugin not active.
 	 */
 	private function clear_wp_rocket_cache( int $post_id ): bool {
@@ -138,7 +138,7 @@ class Cache {
 	 * Clear W3 Total Cache for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True if cleared, false if plugin not active.
 	 */
 	private function clear_w3tc_cache( int $post_id ): bool {
@@ -155,7 +155,7 @@ class Cache {
 	 * Clear WP Super Cache for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True if cleared, false if plugin not active.
 	 */
 	private function clear_wp_super_cache( int $post_id ): bool {
@@ -172,7 +172,7 @@ class Cache {
 	 * Clear LiteSpeed Cache for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True if cleared, false if plugin not active.
 	 */
 	private function clear_litespeed_cache( int $post_id ): bool {
@@ -199,7 +199,7 @@ class Cache {
 	 * Clear WP Fastest Cache for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int   $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True if cleared, false if plugin not active.
 	 */
 	private function clear_wp_fastest_cache( int $post_id ): bool {
@@ -304,12 +304,12 @@ class Cache {
 	 */
 	public function get_detected_cache_plugins(): array {
 		return [
-			'WP Rocket'       => function_exists( 'rocket_clean_post' ),
-			'W3 Total Cache'  => function_exists( 'w3tc_flush_post' ),
-			'WP Super Cache'  => function_exists( 'wp_cache_post_change' ),
-			'LiteSpeed Cache' => class_exists( 'LiteSpeed\Purge' ) || function_exists( 'litespeed_purge_single' ),
+			'WP Rocket'        => function_exists( 'rocket_clean_post' ),
+			'W3 Total Cache'   => function_exists( 'w3tc_flush_post' ),
+			'WP Super Cache'   => function_exists( 'wp_cache_post_change' ),
+			'LiteSpeed Cache'  => class_exists( 'LiteSpeed\Purge' ) || function_exists( 'litespeed_purge_single' ),
 			'WP Fastest Cache' => isset( $GLOBALS['wp_fastest_cache'] ),
-			'Autoptimize'     => class_exists( 'autoptimizeCache' ),
+			'Autoptimize'      => class_exists( 'autoptimizeCache' ),
 		];
 	}
 }

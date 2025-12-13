@@ -78,7 +78,7 @@ class Loader {
 	 * collection.
 	 *
 	 * @since    1.0.0
-	 * @param    array<int, array{hook: string, component: object, callback: string, priority: int, accepted_args: int}>  $hooks  The collection of hooks.
+	 * @param    array<int, array{hook: string, component: object, callback: string, priority: int, accepted_args: int}> $hooks  The collection of hooks.
 	 * @return   array<int, array{hook: string, component: object, callback: string, priority: int, accepted_args: int}>
 	 */
 	private function add(

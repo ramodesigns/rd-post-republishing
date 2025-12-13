@@ -108,7 +108,7 @@ class Migrator {
 	 */
 	public function maybe_migrate(): array {
 		$installed_version = $this->get_installed_version();
-		$current_version = self::CURRENT_DB_VERSION;
+		$current_version   = self::CURRENT_DB_VERSION;
 
 		$result = [
 			'migrated'       => false,
@@ -126,7 +126,7 @@ class Migrator {
 		$migrations_to_run = $this->get_pending_migrations( $installed_version );
 
 		foreach ( $migrations_to_run as $version => $callback ) {
-			$migration_result = $this->run_migration( $version, $callback );
+			$migration_result                     = $this->run_migration( $version, $callback );
 			$result['migrations_run'][ $version ] = $migration_result;
 
 			if ( ! $migration_result['success'] ) {
@@ -162,7 +162,7 @@ class Migrator {
 	 * Update the installed database version.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $version  The version to set.
+	 * @param    string $version  The version to set.
 	 */
 	private function update_installed_version( string $version ): void {
 		update_option( self::DB_VERSION_OPTION, $version );
@@ -172,7 +172,7 @@ class Migrator {
 	 * Get migrations that need to be run.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $from_version  The currently installed version.
+	 * @param    string $from_version  The currently installed version.
 	 * @return   array<string, callable>  Migrations to run, sorted by version.
 	 */
 	private function get_pending_migrations( string $from_version ): array {
@@ -194,8 +194,8 @@ class Migrator {
 	 * Run a single migration.
 	 *
 	 * @since    1.0.0
-	 * @param    string    $version   The migration version.
-	 * @param    callable  $callback  The migration callback.
+	 * @param    string   $version   The migration version.
+	 * @param    callable $callback  The migration callback.
 	 * @return   array<string, mixed>  Result with 'success' and optional 'error' keys.
 	 */
 	private function run_migration( string $version, callable $callback ): array {
@@ -252,7 +252,7 @@ class Migrator {
 
 		// Audit table
 		$table_audit = $this->wpdb->prefix . 'wpr_audit';
-		$sql_audit = "CREATE TABLE {$table_audit} (
+		$sql_audit   = "CREATE TABLE {$table_audit} (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) NOT NULL,
 			action varchar(100) NOT NULL,
@@ -270,7 +270,7 @@ class Migrator {
 
 		// API log table
 		$table_api_log = $this->wpdb->prefix . 'wpr_api_log';
-		$sql_api_log = "CREATE TABLE {$table_api_log} (
+		$sql_api_log   = "CREATE TABLE {$table_api_log} (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			ip_address varchar(45) NOT NULL,
 			user_id bigint(20),
@@ -292,7 +292,7 @@ class Migrator {
 	 * Check if a table exists.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_name  The table name to check.
+	 * @param    string $table_name  The table name to check.
 	 * @return   bool
 	 */
 	private function table_exists( string $table_name ): bool {
@@ -312,8 +312,8 @@ class Migrator {
 	 * Useful for migrations that add new columns.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_name   The table name.
-	 * @param    string  $column_name  The column name.
+	 * @param    string $table_name   The table name.
+	 * @param    string $column_name  The column name.
 	 * @return   bool
 	 */
 	protected function column_exists( string $table_name, string $column_name ): bool {
@@ -334,10 +334,10 @@ class Migrator {
 	 * Utility method for migrations that add new columns.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $table_name   The table name.
-	 * @param    string  $column_name  The column name.
-	 * @param    string  $column_def   The column definition (e.g., "VARCHAR(255) DEFAULT NULL").
-	 * @param    string  $after        Optional column to add after.
+	 * @param    string $table_name   The table name.
+	 * @param    string $column_name  The column name.
+	 * @param    string $column_def   The column definition (e.g., "VARCHAR(255) DEFAULT NULL").
+	 * @param    string $after        Optional column to add after.
 	 * @return   bool    True if column was added or already exists.
 	 */
 	protected function add_column_if_not_exists( string $table_name, string $column_name, string $column_def, string $after = '' ): bool {
@@ -346,7 +346,7 @@ class Migrator {
 		}
 
 		$after_clause = $after ? " AFTER {$after}" : '';
-		$sql = "ALTER TABLE {$table_name} ADD COLUMN {$column_name} {$column_def}{$after_clause}";
+		$sql          = "ALTER TABLE {$table_name} ADD COLUMN {$column_name} {$column_def}{$after_clause}";
 
 		return false !== $this->wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
@@ -355,7 +355,7 @@ class Migrator {
 	 * Log migration start.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $version  The migration version.
+	 * @param    string $version  The migration version.
 	 */
 	private function log_migration_start( string $version ): void {
 		$this->log( sprintf( 'Starting migration to version %s', $version ) );
@@ -365,7 +365,7 @@ class Migrator {
 	 * Log migration success.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $version  The migration version.
+	 * @param    string $version  The migration version.
 	 */
 	private function log_migration_success( string $version ): void {
 		$this->log( sprintf( 'Successfully migrated to version %s', $version ) );
@@ -375,8 +375,8 @@ class Migrator {
 	 * Log migration error.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $version  The migration version.
-	 * @param    string  $error    The error message.
+	 * @param    string $version  The migration version.
+	 * @param    string $error    The error message.
 	 */
 	private function log_migration_error( string $version, string $error ): void {
 		$this->log( sprintf( 'Migration to version %s failed: %s', $version, $error ), 'error' );
@@ -386,8 +386,8 @@ class Migrator {
 	 * Log a message.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $message  The message to log.
-	 * @param    string  $level    Log level ('info' or 'error').
+	 * @param    string $message  The message to log.
+	 * @param    string $level    Log level ('info' or 'error').
 	 */
 	private function log( string $message, string $level = 'info' ): void {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
@@ -406,12 +406,12 @@ class Migrator {
 	 */
 	public function get_status(): array {
 		$installed = $this->get_installed_version();
-		$current = self::CURRENT_DB_VERSION;
+		$current   = self::CURRENT_DB_VERSION;
 
 		return [
-			'installed_version' => $installed,
-			'current_version'   => $current,
-			'needs_migration'   => version_compare( $installed, $current, '<' ),
+			'installed_version'    => $installed,
+			'current_version'      => $current,
+			'needs_migration'      => version_compare( $installed, $current, '<' ),
 			'available_migrations' => array_keys( $this->migrations ),
 			'pending_migrations'   => array_keys( $this->get_pending_migrations( $installed ) ),
 		];

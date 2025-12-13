@@ -71,12 +71,12 @@ class Retry {
 	 * Initialize the retry handler.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
-	 * @param    Engine|null      $engine      Optional engine instance.
+	 * @param    Repository|null $repository  Optional repository instance.
+	 * @param    Engine|null     $engine      Optional engine instance.
 	 */
 	public function __construct( ?Repository $repository = null, ?Engine $engine = null ) {
 		$this->repository = $repository ?? new Repository();
-		$this->engine = $engine ?? new Engine( $this->repository );
+		$this->engine     = $engine ?? new Engine( $this->repository );
 	}
 
 	/**
@@ -93,11 +93,11 @@ class Retry {
 
 		if ( empty( $failed_records ) ) {
 			return [
-				'success'  => true,
-				'message'  => __( 'No failed posts to retry.', 'rd-post-republishing' ),
-				'retried'  => 0,
-				'skipped'  => 0,
-				'posts'    => [],
+				'success' => true,
+				'message' => __( 'No failed posts to retry.', 'rd-post-republishing' ),
+				'retried' => 0,
+				'skipped' => 0,
+				'posts'   => [],
 			];
 		}
 
@@ -106,11 +106,12 @@ class Retry {
 		$skipped = 0;
 
 		foreach ( $failed_records as $record ) {
+			/** @var object{post_id: int|string, id: int|string} $record */
 			$post_id = (int) $record->post_id;
 
 			// Check retry count
 			if ( ! $this->can_retry( $post_id ) ) {
-				$skipped++;
+				++$skipped;
 				$this->log_debug( sprintf( 'Skipping post %d: max retries exceeded', $post_id ) );
 				continue;
 			}
@@ -128,11 +129,11 @@ class Retry {
 				(int) ( $settings['republish_end_hour'] ?? 17 )
 			);
 
-			$result = $this->engine->republish_single_post( $post_id, $new_time, 'cron' );
+			$result    = $this->engine->republish_single_post( $post_id, $new_time, 'cron' );
 			$results[] = $result;
 
 			if ( 'success' === $result['status'] ) {
-				$retried++;
+				++$retried;
 				// Clear retry count on success
 				$this->clear_retry_count( $post_id );
 				$this->log_debug( sprintf( 'Successfully retried post %d', $post_id ) );
@@ -142,16 +143,16 @@ class Retry {
 		}
 
 		return [
-			'success'  => true,
-			'message'  => sprintf(
+			'success' => true,
+			'message' => sprintf(
 				/* translators: %1$d: retried count, %2$d: skipped count */
 				__( 'Retry complete: %1$d successful, %2$d skipped (max retries exceeded).', 'rd-post-republishing' ),
 				$retried,
 				$skipped
 			),
-			'retried'  => $retried,
-			'skipped'  => $skipped,
-			'posts'    => $results,
+			'retried' => $retried,
+			'skipped' => $skipped,
+			'posts'   => $results,
 		];
 	}
 
@@ -159,7 +160,7 @@ class Retry {
 	 * Check if a post can be retried.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   bool  True if retry is allowed.
 	 */
 	public function can_retry( int $post_id ): bool {
@@ -171,7 +172,7 @@ class Retry {
 	 * Get the current retry count for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 * @return   int  Number of retry attempts.
 	 */
 	public function get_retry_count( int $post_id ): int {
@@ -183,7 +184,7 @@ class Retry {
 	 * Increment the retry count for a post.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 */
 	private function increment_retry_count( int $post_id ): void {
 		$count = $this->get_retry_count( $post_id ) + 1;
@@ -195,7 +196,7 @@ class Retry {
 	 * Clear the retry count for a post (on success).
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id  The post ID.
+	 * @param    int $post_id  The post ID.
 	 */
 	public function clear_retry_count( int $post_id ): void {
 		delete_transient( self::RETRY_COUNT_PREFIX . $post_id );
@@ -205,7 +206,7 @@ class Retry {
 	 * Calculate the delay before next retry using exponential backoff.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $attempt  The current attempt number (1-based).
+	 * @param    int $attempt  The current attempt number (1-based).
 	 * @return   int  Delay in seconds.
 	 */
 	public function calculate_delay( int $attempt ): int {
@@ -218,8 +219,8 @@ class Retry {
 	 * Schedule the next retry event.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $post_id   The post ID that failed.
-	 * @param    int  $attempt   The attempt number.
+	 * @param    int $post_id   The post ID that failed.
+	 * @param    int $attempt   The attempt number.
 	 * @return   int|false  Scheduled timestamp or false on failure.
 	 */
 	public function schedule_retry( int $post_id, int $attempt = 1 ): int|false {
@@ -227,23 +228,25 @@ class Retry {
 			return false;
 		}
 
-		$delay = $this->calculate_delay( $attempt );
+		$delay          = $this->calculate_delay( $attempt );
 		$scheduled_time = time() + $delay;
 
 		// Schedule single event for retry
 		$scheduled = wp_schedule_single_event(
 			$scheduled_time,
 			Cron::RETRY_HOOK,
-			[ 'post_id' => $post_id, 'attempt' => $attempt ]
+			[ $post_id, $attempt ]
 		);
 
 		if ( $scheduled ) {
-			$this->log_debug( sprintf(
-				'Scheduled retry for post %d at %s (attempt %d)',
-				$post_id,
-				wp_date( 'Y-m-d H:i:s', $scheduled_time ),
-				$attempt
-			) );
+			$this->log_debug(
+				sprintf(
+					'Scheduled retry for post %d at %s (attempt %d)',
+					$post_id,
+					wp_date( 'Y-m-d H:i:s', $scheduled_time ),
+					$attempt
+				)
+			);
 			return $scheduled_time;
 		}
 
@@ -258,20 +261,21 @@ class Retry {
 	 */
 	public function get_retry_status(): array {
 		$failed_records = $this->repository->get_failed_for_retry();
-		$status = [];
+		$status         = [];
 
 		foreach ( $failed_records as $record ) {
-			$post_id = (int) $record->post_id;
+			/** @var object{post_id: int|string, id: int|string, error_message?: string|null, created_at?: string|null} $record */
+			$post_id     = (int) $record->post_id;
 			$retry_count = $this->get_retry_count( $post_id );
 
 			$status[ $post_id ] = [
-				'post_id'       => $post_id,
-				'history_id'    => (int) $record->id,
-				'retry_count'   => $retry_count,
-				'max_retries'   => self::MAX_RETRIES,
-				'can_retry'     => $retry_count < self::MAX_RETRIES,
-				'last_error'    => $record->error_message ?? null,
-				'failed_at'     => $record->created_at,
+				'post_id'     => $post_id,
+				'history_id'  => (int) $record->id,
+				'retry_count' => $retry_count,
+				'max_retries' => self::MAX_RETRIES,
+				'can_retry'   => $retry_count < self::MAX_RETRIES,
+				'last_error'  => $record->error_message ?? null,
+				'failed_at'   => $record->created_at ?? null,
 			];
 		}
 
@@ -282,24 +286,27 @@ class Retry {
 	 * Generate a random time for retry within configured hours.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $start_hour  Start hour (0-23).
-	 * @param    int  $end_hour    End hour (0-23).
+	 * @param    int $start_hour  Start hour (0-23).
+	 * @param    int $end_hour    End hour (0-23).
 	 * @return   string  Datetime string.
 	 */
 	private function generate_retry_time( int $start_hour, int $end_hour ): string {
 		$timezone = wp_timezone();
-		$now = new \DateTimeImmutable( 'now', $timezone );
+		$now      = new \DateTimeImmutable( 'now', $timezone );
 
 		// Ensure valid range
 		$start_hour = max( 0, min( 23, $start_hour ) );
-		$end_hour = max( 0, min( 23, $end_hour ) );
+		$end_hour   = max( 0, min( 23, $end_hour ) );
 
 		if ( $end_hour <= $start_hour ) {
 			$end_hour = min( $start_hour + 1, 23 );
 		}
 
+		// Ensure valid range for random_int (end must be >= start)
+		$max_hour = max( $start_hour, $end_hour );
+
 		// Generate time within the configured window
-		$random_hour = random_int( $start_hour, $end_hour );
+		$random_hour   = random_int( $start_hour, $max_hour );
 		$random_minute = random_int( 0, 59 );
 		$random_second = random_int( 0, 59 );
 
@@ -312,7 +319,7 @@ class Retry {
 	 * Clear all retry counts (used during cleanup).
 	 *
 	 * @since    1.0.0
-	 * @param    array<int>  $post_ids  Array of post IDs to clear.
+	 * @param    array<int> $post_ids  Array of post IDs to clear.
 	 */
 	public function clear_all_retry_counts( array $post_ids ): void {
 		foreach ( $post_ids as $post_id ) {
@@ -324,7 +331,7 @@ class Retry {
 	 * Log debug message if debug mode is enabled.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $message  The message to log.
+	 * @param    string $message  The message to log.
 	 */
 	private function log_debug( string $message ): void {
 		$settings = $this->repository->get_settings();

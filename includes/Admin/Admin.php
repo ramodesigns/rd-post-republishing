@@ -43,8 +43,9 @@ class Admin {
 	 * The plugin settings page hook suffix.
 	 *
 	 * @since    1.0.0
+	 * @var      string|false
 	 */
-	private string $page_hook = '';
+	private string|false $page_hook = '';
 
 	/**
 	 * Initialize the class and set its properties.
@@ -64,7 +65,7 @@ class Admin {
 	 */
 	public function enqueue_styles( string $hook ): void {
 		// Only load on our settings page
-		if ( $this->page_hook !== $hook ) {
+		if ( false === $this->page_hook || $this->page_hook !== $hook ) {
 			return;
 		}
 
@@ -86,7 +87,7 @@ class Admin {
 	 */
 	public function enqueue_scripts( string $hook ): void {
 		// Only load on our settings page
-		if ( $this->page_hook !== $hook ) {
+		if ( false === $this->page_hook || $this->page_hook !== $hook ) {
 			return;
 		}
 
@@ -254,13 +255,13 @@ class Admin {
 	 * @return   array<string, mixed>  Array of cron health indicators.
 	 */
 	public function check_cron_health(): array {
-		$cron = new Cron();
-		$status = $cron->get_status();
+		$cron       = new Cron();
+		$status     = $cron->get_status();
 		$repository = new Repository();
-		$settings = $repository->get_settings();
+		$settings   = $repository->get_settings();
 
-		$daily_timestamp = $status['daily_republishing']['timestamp'] ?? null;
-		$daily_overdue = false;
+		$daily_timestamp      = $status['daily_republishing']['timestamp'] ?? null;
+		$daily_overdue        = false;
 		$daily_scheduled_time = null;
 
 		if ( $daily_timestamp ) {
@@ -270,13 +271,13 @@ class Admin {
 		}
 
 		return [
-			'wp_cron_disabled'      => $cron->is_wp_cron_disabled(),
-			'alternate_cron'        => $cron->is_alternate_cron(),
-			'plugin_cron_enabled'   => ! empty( $settings['wp_cron_enabled'] ),
-			'events_scheduled'      => $status['daily_republishing']['scheduled'] ?? false,
-			'daily_scheduled_time'  => $daily_scheduled_time,
-			'daily_event_overdue'   => $daily_overdue,
-			'next_run_timestamp'    => $daily_timestamp,
+			'wp_cron_disabled'     => $cron->is_wp_cron_disabled(),
+			'alternate_cron'       => $cron->is_alternate_cron(),
+			'plugin_cron_enabled'  => ! empty( $settings['wp_cron_enabled'] ),
+			'events_scheduled'     => $status['daily_republishing']['scheduled'] ?? false,
+			'daily_scheduled_time' => $daily_scheduled_time,
+			'daily_event_overdue'  => $daily_overdue,
+			'next_run_timestamp'   => $daily_timestamp,
 		];
 	}
 
@@ -284,12 +285,12 @@ class Admin {
 	 * Render an admin notice.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $type     Notice type: 'error', 'warning', 'success', 'info'.
-	 * @param    string  $message  The notice message (can contain HTML).
+	 * @param    string $type     Notice type: 'error', 'warning', 'success', 'info'.
+	 * @param    string $message  The notice message (can contain HTML).
 	 */
 	private function render_admin_notice( string $type, string $message ): void {
 		$allowed_types = [ 'error', 'warning', 'success', 'info' ];
-		$type = in_array( $type, $allowed_types, true ) ? $type : 'info';
+		$type          = in_array( $type, $allowed_types, true ) ? $type : 'info';
 
 		printf(
 			'<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
@@ -312,8 +313,8 @@ class Admin {
 	 * Log settings changes to audit trail.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed  $old_value  The old option value.
-	 * @param    mixed  $new_value  The new option value.
+	 * @param    mixed $old_value  The old option value.
+	 * @param    mixed $new_value  The new option value.
 	 */
 	public function log_settings_change( mixed $old_value, mixed $new_value ): void {
 		// Don't log if values are the same
@@ -332,20 +333,24 @@ class Admin {
 
 		// Log individual changes for better audit trail
 		foreach ( $changes as $key => $change ) {
+			$old_json = is_array( $change['old'] ) ? wp_json_encode( $change['old'] ) : null;
+			$new_json = is_array( $change['new'] ) ? wp_json_encode( $change['new'] ) : null;
 			$repository->log_audit(
 				'setting_changed',
 				$key,
-				is_array( $change['old'] ) ? wp_json_encode( $change['old'] ) : (string) $change['old'],
-				is_array( $change['new'] ) ? wp_json_encode( $change['new'] ) : (string) $change['new']
+				false !== $old_json ? $old_json : ( is_scalar( $change['old'] ) ? (string) $change['old'] : null ),
+				false !== $new_json ? $new_json : ( is_scalar( $change['new'] ) ? (string) $change['new'] : null )
 			);
 		}
 
 		// Also log the full settings update as a single record
+		$old_encoded = wp_json_encode( $old_value );
+		$new_encoded = wp_json_encode( $new_value );
 		$repository->log_audit(
 			'settings_updated',
 			null,
-			wp_json_encode( $old_value ),
-			wp_json_encode( $new_value )
+			false !== $old_encoded ? $old_encoded : null,
+			false !== $new_encoded ? $new_encoded : null
 		);
 	}
 
@@ -353,16 +358,17 @@ class Admin {
 	 * Log when settings are first added.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $option  The option name.
-	 * @param    mixed   $value   The option value.
+	 * @param    string $option  The option name.
+	 * @param    mixed  $value   The option value.
 	 */
 	public function log_settings_added( string $option, mixed $value ): void {
 		$repository = new Repository();
+		$encoded    = wp_json_encode( $value );
 		$repository->log_audit(
 			'settings_created',
 			null,
 			null,
-			wp_json_encode( $value )
+			false !== $encoded ? $encoded : null
 		);
 	}
 
@@ -370,8 +376,8 @@ class Admin {
 	 * Get the differences between old and new settings.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed  $old_value  The old settings array.
-	 * @param    mixed  $new_value  The new settings array.
+	 * @param    mixed $old_value  The old settings array.
+	 * @param    mixed $new_value  The new settings array.
 	 * @return   array<string, array<string, mixed>>  Array of changed settings.
 	 */
 	private function get_settings_diff( mixed $old_value, mixed $new_value ): array {
@@ -379,7 +385,7 @@ class Admin {
 			return [];
 		}
 
-		$changes = [];
+		$changes  = [];
 		$all_keys = array_unique( array_merge( array_keys( $old_value ), array_keys( $new_value ) ) );
 
 		foreach ( $all_keys as $key ) {
@@ -406,39 +412,41 @@ class Admin {
 		$this->verify_ajax_request();
 
 		$repository = new Repository();
-		$query = new Query( $repository );
-		$settings = $repository->get_settings();
+		$query      = new Query( $repository );
+		$settings   = $repository->get_settings();
 
 		// Get eligible posts for dry-run preview
-		$eligible_posts = $query->get_eligible_posts( $settings );
-		$quota = $query->calculate_quota( $settings );
+		$eligible_posts     = $query->get_eligible_posts( $settings );
+		$quota              = $query->calculate_quota( $settings );
 		$posts_to_republish = array_slice( $eligible_posts, 0, $quota );
 
 		$preview_data = [];
-		foreach ( $posts_to_republish as $post_id ) {
-			$post = get_post( $post_id );
-			if ( $post ) {
+		foreach ( $posts_to_republish as $post_obj ) {
+			$post = get_post( $post_obj->ID ?? $post_obj );
+			if ( $post instanceof \WP_Post ) {
 				$preview_data[] = [
-					'id'           => $post_id,
+					'id'           => $post->ID,
 					'title'        => $post->post_title,
 					'current_date' => $post->post_date,
-					'edit_link'    => get_edit_post_link( $post_id, 'raw' ),
-					'view_link'    => get_permalink( $post_id ),
+					'edit_link'    => get_edit_post_link( $post->ID, 'raw' ),
+					'view_link'    => get_permalink( $post->ID ),
 				];
 			}
 		}
 
-		wp_send_json_success( [
-			'posts'       => $preview_data,
-			'total_count' => count( $eligible_posts ),
-			'quota'       => $quota,
-			'message'     => sprintf(
-				/* translators: %1$d: number of posts to republish, %2$d: total eligible posts */
-				__( 'Dry-run complete. %1$d of %2$d eligible posts would be republished.', 'rd-post-republishing' ),
-				count( $posts_to_republish ),
-				count( $eligible_posts )
-			),
-		] );
+		wp_send_json_success(
+			[
+				'posts'       => $preview_data,
+				'total_count' => count( $eligible_posts ),
+				'quota'       => $quota,
+				'message'     => sprintf(
+					/* translators: %1$d: number of posts to republish, %2$d: total eligible posts */
+					__( 'Dry-run complete. %1$d of %2$d eligible posts would be republished.', 'rd-post-republishing' ),
+					count( $posts_to_republish ),
+					count( $eligible_posts )
+				),
+			]
+		);
 	}
 
 	/**
@@ -453,20 +461,24 @@ class Admin {
 		$result = $engine->execute_batch( 'manual' );
 
 		if ( $result['success'] ) {
-			wp_send_json_success( [
-				'republished' => $result['republished'],
-				'failed'      => $result['failed'],
-				'skipped'     => $result['skipped'],
-				'message'     => sprintf(
-					/* translators: %d: number of republished posts */
-					__( 'Successfully republished %d posts.', 'rd-post-republishing' ),
-					count( $result['republished'] )
-				),
-			] );
+			wp_send_json_success(
+				[
+					'republished' => $result['republished'],
+					'failed'      => $result['failed'],
+					'skipped'     => $result['skipped'],
+					'message'     => sprintf(
+						/* translators: %d: number of republished posts */
+						__( 'Successfully republished %d posts.', 'rd-post-republishing' ),
+						count( $result['republished'] )
+					),
+				]
+			);
 		} else {
-			wp_send_json_error( [
-				'message' => $result['message'] ?? __( 'Republishing failed.', 'rd-post-republishing' ),
-			] );
+			wp_send_json_error(
+				[
+					'message' => $result['message'] ?? __( 'Republishing failed.', 'rd-post-republishing' ),
+				]
+			);
 		}
 	}
 
@@ -487,27 +499,34 @@ class Admin {
 		);
 
 		if ( empty( $results ) ) {
-			wp_send_json_error( [
-				'message' => __( 'No history records to export.', 'rd-post-republishing' ),
-			] );
+			wp_send_json_error(
+				[
+					'message' => __( 'No history records to export.', 'rd-post-republishing' ),
+				]
+			);
 		}
 
-		$csv_data = $this->generate_csv( $results, [
-			'id'               => __( 'ID', 'rd-post-republishing' ),
-			'post_id'          => __( 'Post ID', 'rd-post-republishing' ),
-			'old_datetime'     => __( 'Old Date', 'rd-post-republishing' ),
-			'new_datetime'     => __( 'New Date', 'rd-post-republishing' ),
-			'triggered_by'     => __( 'Triggered By', 'rd-post-republishing' ),
-			'status'           => __( 'Status', 'rd-post-republishing' ),
-			'error_message'    => __( 'Error Message', 'rd-post-republishing' ),
-			'execution_time'   => __( 'Execution Time (ms)', 'rd-post-republishing' ),
-			'republished_at'   => __( 'Republished At', 'rd-post-republishing' ),
-		] );
+		$csv_data = $this->generate_csv(
+			$results,
+			[
+				'id'             => __( 'ID', 'rd-post-republishing' ),
+				'post_id'        => __( 'Post ID', 'rd-post-republishing' ),
+				'old_datetime'   => __( 'Old Date', 'rd-post-republishing' ),
+				'new_datetime'   => __( 'New Date', 'rd-post-republishing' ),
+				'triggered_by'   => __( 'Triggered By', 'rd-post-republishing' ),
+				'status'         => __( 'Status', 'rd-post-republishing' ),
+				'error_message'  => __( 'Error Message', 'rd-post-republishing' ),
+				'execution_time' => __( 'Execution Time (ms)', 'rd-post-republishing' ),
+				'republished_at' => __( 'Republished At', 'rd-post-republishing' ),
+			]
+		);
 
-		wp_send_json_success( [
-			'csv'      => $csv_data,
-			'filename' => 'wpr-history-' . gmdate( 'Y-m-d' ) . '.csv',
-		] );
+		wp_send_json_success(
+			[
+				'csv'      => $csv_data,
+				'filename' => 'wpr-history-' . gmdate( 'Y-m-d' ) . '.csv',
+			]
+		);
 	}
 
 	/**
@@ -527,24 +546,31 @@ class Admin {
 		);
 
 		if ( empty( $results ) ) {
-			wp_send_json_error( [
-				'message' => __( 'No audit records to export.', 'rd-post-republishing' ),
-			] );
+			wp_send_json_error(
+				[
+					'message' => __( 'No audit records to export.', 'rd-post-republishing' ),
+				]
+			);
 		}
 
-		$csv_data = $this->generate_csv( $results, [
-			'id'            => __( 'ID', 'rd-post-republishing' ),
-			'event_type'    => __( 'Event Type', 'rd-post-republishing' ),
-			'event_details' => __( 'Details', 'rd-post-republishing' ),
-			'user_id'       => __( 'User ID', 'rd-post-republishing' ),
-			'ip_address'    => __( 'IP Address', 'rd-post-republishing' ),
-			'created_at'    => __( 'Created At', 'rd-post-republishing' ),
-		] );
+		$csv_data = $this->generate_csv(
+			$results,
+			[
+				'id'            => __( 'ID', 'rd-post-republishing' ),
+				'event_type'    => __( 'Event Type', 'rd-post-republishing' ),
+				'event_details' => __( 'Details', 'rd-post-republishing' ),
+				'user_id'       => __( 'User ID', 'rd-post-republishing' ),
+				'ip_address'    => __( 'IP Address', 'rd-post-republishing' ),
+				'created_at'    => __( 'Created At', 'rd-post-republishing' ),
+			]
+		);
 
-		wp_send_json_success( [
-			'csv'      => $csv_data,
-			'filename' => 'wpr-audit-' . gmdate( 'Y-m-d' ) . '.csv',
-		] );
+		wp_send_json_success(
+			[
+				'csv'      => $csv_data,
+				'filename' => 'wpr-audit-' . gmdate( 'Y-m-d' ) . '.csv',
+			]
+		);
 	}
 
 	/**
@@ -556,35 +582,38 @@ class Admin {
 		$this->verify_ajax_request();
 
 		$repository = new Repository();
-		$query = new Query( $repository );
-		$settings = $repository->get_settings();
+		$query      = new Query( $repository );
+		$settings   = $repository->get_settings();
 
 		$eligible_posts = $query->get_eligible_posts( $settings );
-		$quota = $query->calculate_quota( $settings );
+		$quota          = $query->calculate_quota( $settings );
 
 		$preview_data = [];
-		$count = 0;
-		foreach ( $eligible_posts as $post_id ) {
+		$count        = 0;
+		foreach ( $eligible_posts as $post_obj ) {
 			if ( $count >= $quota ) {
 				break;
 			}
-			$post = get_post( $post_id );
-			if ( $post ) {
+			$post = get_post( $post_obj->ID ?? $post_obj );
+			if ( $post instanceof \WP_Post ) {
+				$categories     = wp_get_post_categories( $post->ID, [ 'fields' => 'names' ] );
 				$preview_data[] = [
-					'id'           => $post_id,
+					'id'           => $post->ID,
 					'title'        => $post->post_title,
 					'current_date' => $post->post_date,
-					'categories'   => wp_get_post_categories( $post_id, [ 'fields' => 'names' ] ),
+					'categories'   => is_array( $categories ) ? $categories : [],
 				];
-				$count++;
+				++$count;
 			}
 		}
 
-		wp_send_json_success( [
-			'posts'       => $preview_data,
-			'total_count' => count( $eligible_posts ),
-			'quota'       => $quota,
-		] );
+		wp_send_json_success(
+			[
+				'posts'       => $preview_data,
+				'total_count' => count( $eligible_posts ),
+				'quota'       => $quota,
+			]
+		);
 	}
 
 	/**
@@ -594,15 +623,21 @@ class Admin {
 	 */
 	private function verify_ajax_request(): void {
 		if ( ! check_ajax_referer( 'wpr_admin_nonce', 'nonce', false ) ) {
-			wp_send_json_error( [
-				'message' => __( 'Security check failed.', 'rd-post-republishing' ),
-			], 403 );
+			wp_send_json_error(
+				[
+					'message' => __( 'Security check failed.', 'rd-post-republishing' ),
+				],
+				403
+			);
 		}
 
 		if ( ! current_user_can( $this->get_required_capability() ) ) {
-			wp_send_json_error( [
-				'message' => __( 'You do not have permission to perform this action.', 'rd-post-republishing' ),
-			], 403 );
+			wp_send_json_error(
+				[
+					'message' => __( 'You do not have permission to perform this action.', 'rd-post-republishing' ),
+				],
+				403
+			);
 		}
 	}
 
@@ -610,12 +645,16 @@ class Admin {
 	 * Generate CSV content from data.
 	 *
 	 * @since    1.0.0
-	 * @param    array<int, array<string, mixed>>  $data     The data rows.
-	 * @param    array<string, string>             $headers  Column key => header label mapping.
+	 * @param    array<int, array<string, mixed>> $data     The data rows.
+	 * @param    array<string, string>            $headers  Column key => header label mapping.
 	 * @return   string
 	 */
 	private function generate_csv( array $data, array $headers ): string {
 		$output = fopen( 'php://temp', 'r+' );
+
+		if ( false === $output ) {
+			return '';
+		}
 
 		// Write header row
 		fputcsv( $output, array_values( $headers ) );
@@ -633,7 +672,7 @@ class Admin {
 		$csv_content = stream_get_contents( $output );
 		fclose( $output );
 
-		return $csv_content;
+		return false !== $csv_content ? $csv_content : '';
 	}
 
 	/**
@@ -642,16 +681,16 @@ class Admin {
 	 * Sanitizes input values and adds validation error messages for invalid data.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, mixed>  $input  The settings to sanitize.
+	 * @param    array<string, mixed> $input  The settings to sanitize.
 	 * @return   array<string, mixed>
 	 */
 	public function sanitize_settings( array $input ): array {
 		$sanitized = [];
-		$defaults = $this->get_default_settings();
+		$defaults  = $this->get_default_settings();
 
 		// === Post Types Validation ===
-		$valid_post_types = get_post_types( [ 'public' => true ], 'names' );
-		$requested_types = (array) ( $input['enabled_post_types'] ?? [] );
+		$valid_post_types                = get_post_types( [ 'public' => true ], 'names' );
+		$requested_types                 = (array) ( $input['enabled_post_types'] ?? [] );
 		$sanitized['enabled_post_types'] = array_filter(
 			array_map( 'sanitize_text_field', $requested_types ),
 			fn( string $type ): bool => isset( $valid_post_types[ $type ] )
@@ -689,7 +728,7 @@ class Admin {
 			: 'number';
 
 		// === Quota Value Validation ===
-		$raw_quota = $input['daily_quota_value'] ?? $defaults['daily_quota_value'];
+		$raw_quota   = $input['daily_quota_value'] ?? $defaults['daily_quota_value'];
 		$quota_value = absint( $raw_quota );
 
 		if ( $quota_value < 1 ) {
@@ -720,7 +759,7 @@ class Admin {
 
 		// === Time Range Validation ===
 		$start_hour = absint( $input['republish_start_hour'] ?? $defaults['republish_start_hour'] );
-		$end_hour = absint( $input['republish_end_hour'] ?? $defaults['republish_end_hour'] );
+		$end_hour   = absint( $input['republish_end_hour'] ?? $defaults['republish_end_hour'] );
 
 		// Validate hour range (0-23)
 		if ( $start_hour > 23 ) {
@@ -759,10 +798,10 @@ class Admin {
 		}
 
 		$sanitized['republish_start_hour'] = $start_hour;
-		$sanitized['republish_end_hour'] = $end_hour;
+		$sanitized['republish_end_hour']   = $end_hour;
 
 		// === Minimum Age Validation ===
-		$raw_age = $input['minimum_age_days'] ?? $defaults['minimum_age_days'];
+		$raw_age  = $input['minimum_age_days'] ?? $defaults['minimum_age_days'];
 		$age_days = absint( $raw_age );
 
 		if ( $age_days < 7 ) {
@@ -793,9 +832,9 @@ class Admin {
 
 		// === Boolean Options ===
 		$sanitized['maintain_chronological_order'] = ! empty( $input['maintain_chronological_order'] );
-		$sanitized['wp_cron_enabled'] = ! empty( $input['wp_cron_enabled'] );
-		$sanitized['debug_mode'] = ! empty( $input['debug_mode'] );
-		$sanitized['dry_run_mode'] = ! empty( $input['dry_run_mode'] );
+		$sanitized['wp_cron_enabled']              = ! empty( $input['wp_cron_enabled'] );
+		$sanitized['debug_mode']                   = ! empty( $input['debug_mode'] );
+		$sanitized['dry_run_mode']                 = ! empty( $input['dry_run_mode'] );
 
 		// Warn about debug mode in production
 		if ( $sanitized['debug_mode'] && ! defined( 'WP_DEBUG' ) ) {
@@ -818,12 +857,12 @@ class Admin {
 		}
 
 		// === Category Filter Validation ===
-		$filter_type = $input['category_filter_type'] ?? 'none';
+		$filter_type                       = $input['category_filter_type'] ?? 'none';
 		$sanitized['category_filter_type'] = in_array( $filter_type, [ 'none', 'whitelist', 'blacklist' ], true )
 			? $filter_type
 			: 'none';
 
-		$category_ids = array_filter( array_map( 'absint', (array) ( $input['category_filter_ids'] ?? [] ) ) );
+		$category_ids                     = array_filter( array_map( 'absint', (array) ( $input['category_filter_ids'] ?? [] ) ) );
 		$sanitized['category_filter_ids'] = $category_ids;
 
 		// Warn if filter type selected but no categories chosen
@@ -846,12 +885,14 @@ class Admin {
 
 		// Validate category IDs exist
 		if ( ! empty( $category_ids ) ) {
-			$existing_cats = get_terms( [
-				'taxonomy'   => 'category',
-				'hide_empty' => false,
-				'include'    => $category_ids,
-				'fields'     => 'ids',
-			] );
+			$existing_cats = get_terms(
+				[
+					'taxonomy'   => 'category',
+					'hide_empty' => false,
+					'include'    => $category_ids,
+					'fields'     => 'ids',
+				]
+			);
 
 			if ( ! is_wp_error( $existing_cats ) ) {
 				$invalid_cats = array_diff( $category_ids, $existing_cats );
@@ -873,7 +914,7 @@ class Admin {
 
 		// === API Rate Limit Validation ===
 		$raw_rate_limit = $input['api_rate_limit_seconds'] ?? $defaults['api_rate_limit_seconds'];
-		$rate_limit = absint( $raw_rate_limit );
+		$rate_limit     = absint( $raw_rate_limit );
 
 		if ( $rate_limit < 60 && $rate_limit !== 1 ) {
 			add_settings_error(
@@ -888,7 +929,7 @@ class Admin {
 
 		// === Success Message ===
 		// Only show success if there were no errors
-		$errors = get_settings_errors( 'wpr_settings' );
+		$errors     = get_settings_errors( 'wpr_settings' );
 		$has_errors = false;
 		foreach ( $errors as $error ) {
 			if ( 'error' === $error['type'] ) {
@@ -920,7 +961,7 @@ class Admin {
 		}
 
 		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'overview';
-		$tabs = [
+		$tabs        = [
 			'overview' => __( 'Overview', 'rd-post-republishing' ),
 			'schedule' => __( 'Schedule', 'rd-post-republishing' ),
 			'settings' => __( 'Settings', 'rd-post-republishing' ),

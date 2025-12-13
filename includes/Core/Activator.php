@@ -56,7 +56,7 @@ class Activator {
 
 		// History table
 		$table_history = $wpdb->prefix . 'wpr_history';
-		$sql_history = "CREATE TABLE {$table_history} (
+		$sql_history   = "CREATE TABLE {$table_history} (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			post_id bigint(20) NOT NULL,
 			post_type varchar(20) NOT NULL,
@@ -76,7 +76,7 @@ class Activator {
 
 		// Audit table
 		$table_audit = $wpdb->prefix . 'wpr_audit';
-		$sql_audit = "CREATE TABLE {$table_audit} (
+		$sql_audit   = "CREATE TABLE {$table_audit} (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) NOT NULL,
 			action varchar(100) NOT NULL,
@@ -94,7 +94,7 @@ class Activator {
 
 		// API log table
 		$table_api_log = $wpdb->prefix . 'wpr_api_log';
-		$sql_api_log = "CREATE TABLE {$table_api_log} (
+		$sql_api_log   = "CREATE TABLE {$table_api_log} (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			ip_address varchar(45) NOT NULL,
 			user_id bigint(20),

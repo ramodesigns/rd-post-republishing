@@ -71,7 +71,7 @@ class Cron {
 	 * Initialize the scheduler.
 	 *
 	 * @since    1.0.0
-	 * @param    Repository|null  $repository  Optional repository instance.
+	 * @param    Repository|null $repository  Optional repository instance.
 	 */
 	public function __construct( ?Repository $repository = null ) {
 		$this->repository = $repository ?? new Repository();
@@ -98,7 +98,7 @@ class Cron {
 	 * Add custom cron schedules.
 	 *
 	 * @since    1.0.0
-	 * @param    array<string, array<string, mixed>>  $schedules  Existing schedules.
+	 * @param    array<string, array<string, mixed>> $schedules  Existing schedules.
 	 * @return   array<string, array<string, mixed>>
 	 */
 	public function add_cron_schedules( array $schedules ): array {
@@ -135,7 +135,7 @@ class Cron {
 		if ( ! wp_next_scheduled( self::DAILY_HOOK ) ) {
 			// Schedule for the configured start hour
 			$start_hour = (int) ( $settings['republish_start_hour'] ?? 9 );
-			$first_run = $this->get_next_scheduled_time( $start_hour );
+			$first_run  = $this->get_next_scheduled_time( $start_hour );
 			wp_schedule_event( $first_run, 'daily', self::DAILY_HOOK );
 		}
 
@@ -178,12 +178,14 @@ class Cron {
 		$engine = new Engine( $this->repository );
 		$result = $engine->execute_batch( 'cron' );
 
-		$this->log_debug( sprintf(
-			'Daily republishing completed: %s - %d successful, %d failed.',
-			$result['success'] ? 'SUCCESS' : 'FAILED',
-			$result['successful'] ?? 0,
-			$result['failed'] ?? 0
-		) );
+		$this->log_debug(
+			sprintf(
+				'Daily republishing completed: %s - %d successful, %d failed.',
+				$result['success'] ? 'SUCCESS' : 'FAILED',
+				$result['successful'] ?? 0,
+				$result['failed'] ?? 0
+			)
+		);
 
 		// Schedule retry if there were failures
 		if ( ! empty( $result['failed'] ) && $result['failed'] > 0 ) {
@@ -210,10 +212,12 @@ class Cron {
 		$engine = new Engine( $this->repository );
 		$result = $engine->retry_failed();
 
-		$this->log_debug( sprintf(
-			'Retry completed: %d posts retried.',
-			count( $result['posts'] ?? [] )
-		) );
+		$this->log_debug(
+			sprintf(
+				'Retry completed: %d posts retried.',
+				count( $result['posts'] ?? [] )
+			)
+		);
 
 		// Clear the retry schedule (single retry only)
 		wp_clear_scheduled_hook( self::RETRY_HOOK );
@@ -237,12 +241,14 @@ class Cron {
 
 		$deleted = $this->repository->purge_old_records( 365 );
 
-		$this->log_debug( sprintf(
-			'Cleanup completed: %d history, %d audit, %d API log records deleted.',
-			$deleted['history'] ?? 0,
-			$deleted['audit'] ?? 0,
-			$deleted['api_log'] ?? 0
-		) );
+		$this->log_debug(
+			sprintf(
+				'Cleanup completed: %d history, %d audit, %d API log records deleted.',
+				$deleted['history'] ?? 0,
+				$deleted['audit'] ?? 0,
+				$deleted['api_log'] ?? 0
+			)
+		);
 
 		/**
 		 * Fires after database cleanup completes.
@@ -271,11 +277,11 @@ class Cron {
 	 * Get the next scheduled run time for a given hour.
 	 *
 	 * @since    1.0.0
-	 * @param    int  $hour  Hour of day (0-23).
+	 * @param    int $hour  Hour of day (0-23).
 	 */
 	private function get_next_scheduled_time( int $hour ): int {
-		$timezone = wp_timezone();
-		$now = new \DateTimeImmutable( 'now', $timezone );
+		$timezone  = wp_timezone();
+		$now       = new \DateTimeImmutable( 'now', $timezone );
 		$scheduled = $now->setTime( $hour, 0, 0 );
 
 		// If the time has already passed today, schedule for tomorrow
@@ -313,25 +319,25 @@ class Cron {
 	public function get_status(): array {
 		$settings = $this->repository->get_settings();
 
-		$daily_next = wp_next_scheduled( self::DAILY_HOOK );
-		$retry_next = wp_next_scheduled( self::RETRY_HOOK );
+		$daily_next   = wp_next_scheduled( self::DAILY_HOOK );
+		$retry_next   = wp_next_scheduled( self::RETRY_HOOK );
 		$cleanup_next = wp_next_scheduled( self::CLEANUP_HOOK );
 
 		return [
-			'wp_cron_enabled'      => ! empty( $settings['wp_cron_enabled'] ),
-			'wp_cron_disabled'     => $this->is_wp_cron_disabled(),
-			'alternate_cron'       => $this->is_alternate_cron(),
-			'daily_republishing'   => [
+			'wp_cron_enabled'    => ! empty( $settings['wp_cron_enabled'] ),
+			'wp_cron_disabled'   => $this->is_wp_cron_disabled(),
+			'alternate_cron'     => $this->is_alternate_cron(),
+			'daily_republishing' => [
 				'scheduled' => false !== $daily_next,
 				'next_run'  => $daily_next ? wp_date( 'Y-m-d H:i:s', $daily_next ) : null,
 				'timestamp' => $daily_next ?: null,
 			],
-			'retry'                => [
+			'retry'              => [
 				'scheduled' => false !== $retry_next,
 				'next_run'  => $retry_next ? wp_date( 'Y-m-d H:i:s', $retry_next ) : null,
 				'timestamp' => $retry_next ?: null,
 			],
-			'cleanup'              => [
+			'cleanup'            => [
 				'scheduled' => false !== $cleanup_next,
 				'next_run'  => $cleanup_next ? wp_date( 'Y-m-d H:i:s', $cleanup_next ) : null,
 				'timestamp' => $cleanup_next ?: null,
@@ -354,7 +360,7 @@ class Cron {
 	 * Log debug message if debug mode is enabled.
 	 *
 	 * @since    1.0.0
-	 * @param    string  $message  The message to log.
+	 * @param    string $message  The message to log.
 	 */
 	private function log_debug( string $message ): void {
 		$settings = $this->repository->get_settings();
