@@ -46,3 +46,11 @@ wp-config.php
 # Note: If you wish to whitelist themes,
 # uncomment the next line
 #/wp-content/themes
+# Composer dependencies
+/vendor/
+
+# PHPUnit cache
+/.phpunit.cache/
+
+# Node modules
+/node_modules/
