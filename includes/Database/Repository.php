@@ -32,6 +32,7 @@ class Repository {
 	 * WordPress database instance.
 	 *
 	 * @since    1.0.0
+	 * @var      \wpdb
 	 */
 	private \wpdb $wpdb;
 
@@ -39,6 +40,7 @@ class Repository {
 	 * Table name for republishing history.
 	 *
 	 * @since    1.0.0
+	 * @var      string
 	 */
 	private readonly string $history_table;
 
@@ -46,6 +48,7 @@ class Repository {
 	 * Table name for audit logs.
 	 *
 	 * @since    1.0.0
+	 * @var      string
 	 */
 	private readonly string $audit_table;
 
@@ -53,6 +56,7 @@ class Repository {
 	 * Table name for API logs.
 	 *
 	 * @since    1.0.0
+	 * @var      string
 	 */
 	private readonly string $api_log_table;
 

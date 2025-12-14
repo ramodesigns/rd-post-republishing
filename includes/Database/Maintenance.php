@@ -56,6 +56,7 @@ class Maintenance {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -63,6 +64,7 @@ class Maintenance {
 	 * Schema instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Schema
 	 */
 	private Schema $schema;
 
@@ -70,6 +72,7 @@ class Maintenance {
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Logger
 	 */
 	private Logger $logger;
 
@@ -77,6 +80,7 @@ class Maintenance {
 	 * WordPress database instance.
 	 *
 	 * @since    1.0.0
+	 * @var      \wpdb
 	 */
 	private \wpdb $wpdb;
 
@@ -451,6 +455,7 @@ class Maintenance {
 		}
 
 		// Build CSV
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Using php://temp stream, not filesystem.
 		$output = fopen( 'php://temp', 'r+' );
 
 		if ( false === $output ) {
@@ -467,6 +472,7 @@ class Maintenance {
 
 		rewind( $output );
 		$csv = stream_get_contents( $output );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Using php://temp stream, not filesystem.
 		fclose( $output );
 
 		return false !== $csv ? $csv : false;

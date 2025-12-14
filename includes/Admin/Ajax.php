@@ -47,6 +47,7 @@ class Ajax {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -54,6 +55,7 @@ class Ajax {
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Logger
 	 */
 	private Logger $logger;
 
@@ -61,6 +63,7 @@ class Ajax {
 	 * Audit trail instance.
 	 *
 	 * @since    1.0.0
+	 * @var      AuditTrail
 	 */
 	private AuditTrail $audit_trail;
 

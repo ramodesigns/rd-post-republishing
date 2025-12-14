@@ -60,6 +60,7 @@ class RestController {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -67,6 +68,7 @@ class RestController {
 	 * Rate limiter instance.
 	 *
 	 * @since    1.0.0
+	 * @var      RateLimiter
 	 */
 	private RateLimiter $rate_limiter;
 
@@ -74,6 +76,7 @@ class RestController {
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Logger
 	 */
 	private Logger $logger;
 
@@ -169,11 +172,13 @@ class RestController {
 	 * Validate boolean parameter.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed           $value    The parameter value.
-	 * @param    WP_REST_Request $request  The request object.
-	 * @param    string          $param    The parameter name.
+	 * @param    mixed           $value     The parameter value.
+	 * @param    WP_REST_Request $_request  The request object (unused, required by WP REST API).
+	 * @param    string          $_param    The parameter name (unused, required by WP REST API).
+	 *
+	 * phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 	 */
-	public function validate_boolean( mixed $value, WP_REST_Request $request, string $param ): bool {
+	public function validate_boolean( mixed $value, WP_REST_Request $_request, string $_param ): bool {
 		return is_bool( $value ) || in_array( $value, [ 'true', 'false', '1', '0', 1, 0 ], true );
 	}
 
@@ -181,11 +186,13 @@ class RestController {
 	 * Validate days parameter.
 	 *
 	 * @since    1.0.0
-	 * @param    mixed           $value    The parameter value.
-	 * @param    WP_REST_Request $request  The request object.
-	 * @param    string          $param    The parameter name.
+	 * @param    mixed           $value     The parameter value.
+	 * @param    WP_REST_Request $_request  The request object (unused, required by WP REST API).
+	 * @param    string          $_param    The parameter name (unused, required by WP REST API).
+	 *
+	 * phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 	 */
-	public function validate_days( mixed $value, WP_REST_Request $request, string $param ): bool|WP_Error {
+	public function validate_days( mixed $value, WP_REST_Request $_request, string $_param ): bool|WP_Error {
 		$days = absint( $value );
 		if ( $days < 1 || $days > 7 ) {
 			return new WP_Error(
@@ -480,9 +487,11 @@ class RestController {
 	 * Handle the health check endpoint.
 	 *
 	 * @since    1.0.0
-	 * @param    WP_REST_Request $request  The request object.
+	 * @param    WP_REST_Request $_request  The request object (unused, required by WP REST API).
+	 *
+	 * phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 	 */
-	public function handle_health( WP_REST_Request $request ): WP_REST_Response {
+	public function handle_health( WP_REST_Request $_request ): WP_REST_Response {
 		$healthy = true;
 		$checks  = [];
 

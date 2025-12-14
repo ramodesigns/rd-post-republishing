@@ -56,6 +56,7 @@ class RateLimiter {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -63,6 +64,7 @@ class RateLimiter {
 	 * Rate limit window in seconds.
 	 *
 	 * @since    1.0.0
+	 * @var      int
 	 */
 	private int $window_seconds;
 
@@ -70,6 +72,7 @@ class RateLimiter {
 	 * Maximum requests allowed per window.
 	 *
 	 * @since    1.0.0
+	 * @var      int
 	 */
 	private int $max_requests;
 
@@ -209,7 +212,7 @@ class RateLimiter {
 			);
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Rate limit checks require fresh data.
 		$result = $wpdb->get_var( $query );
 
 		return null === $result ? 0 : (int) $result;
