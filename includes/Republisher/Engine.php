@@ -39,6 +39,7 @@ class Engine {
 	 * WordPress database instance.
 	 *
 	 * @since    1.0.0
+	 * @var      \wpdb
 	 */
 	private \wpdb $wpdb;
 
@@ -46,6 +47,7 @@ class Engine {
 	 * Repository instance for data access.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -53,6 +55,7 @@ class Engine {
 	 * Query instance for post selection.
 	 *
 	 * @since    1.0.0
+	 * @var      Query
 	 */
 	private Query $query;
 
@@ -60,6 +63,7 @@ class Engine {
 	 * Site timezone.
 	 *
 	 * @since    1.0.0
+	 * @var      DateTimeZone
 	 */
 	private DateTimeZone $timezone;
 
@@ -67,6 +71,7 @@ class Engine {
 	 * Cache handler instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Cache
 	 */
 	private Cache $cache;
 
@@ -326,7 +331,7 @@ class Engine {
 		$this->clear_post_caches( $post_id );
 
 		// Trigger WordPress publication hooks to notify other plugins/themes
-		$this->trigger_publication_hooks( $post_id, $post );
+		$this->trigger_publication_hooks( $post_id );
 
 		// Log success
 		$this->repository->log_history(
@@ -496,18 +501,20 @@ class Engine {
 	 * Trigger WordPress publication hooks.
 	 *
 	 * Notifies WordPress and other plugins that a post has been "republished".
+	 * Intentionally fires core WordPress hooks to ensure proper integration
+	 * with caching plugins, SEO tools, and other post-aware systems.
 	 *
 	 * @since    1.0.0
-	 * @param    int      $post_id  The post ID.
-	 * @param    \WP_Post $post     The post object.
+	 * @param    int $post_id  The post ID.
 	 */
-	private function trigger_publication_hooks( int $post_id, \WP_Post $post ): void {
+	private function trigger_publication_hooks( int $post_id ): void {
 		// Refresh post object from database
 		$updated_post = get_post( $post_id );
 		if ( ! $updated_post ) {
 			return;
 		}
 
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Intentionally firing core WordPress hooks.
 		// Trigger edit_post action
 		do_action( 'edit_post', $post_id, $updated_post );
 
@@ -525,6 +532,7 @@ class Engine {
 
 		// Trigger publish action
 		do_action( "publish_{$updated_post->post_type}", $post_id, $updated_post );
+		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 	}
 
 	/**

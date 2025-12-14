@@ -1,4 +1,13 @@
 <?php
+/**
+ * The admin-specific functionality of the plugin.
+ *
+ * @link       https://www.paulramotowski.com
+ * @since      1.0.0
+ *
+ * @package    RD_Post_Republishing
+ * @subpackage RD_Post_Republishing/includes/Admin
+ */
 
 declare(strict_types=1);
 
@@ -16,16 +25,6 @@ use WPR\Republisher\Scheduler\Cron;
  * @since    1.0.0
  */
 const WPR_CRON_OVERDUE_THRESHOLD = 3600; // 1 hour
-
-/**
- * The admin-specific functionality of the plugin.
- *
- * @link       https://www.paulramotowski.com
- * @since      1.0.0
- *
- * @package    RD_Post_Republishing
- * @subpackage RD_Post_Republishing/includes/Admin
- */
 
 /**
  * The admin-specific functionality of the plugin.
@@ -51,6 +50,8 @@ class Admin {
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
+	 * @param    string $plugin_name  The name of this plugin.
+	 * @param    string $version      The version of this plugin.
 	 */
 	public function __construct(
 		private readonly string $plugin_name,
@@ -62,6 +63,7 @@ class Admin {
 	 * Register the stylesheets for the admin area.
 	 *
 	 * @since    1.0.0
+	 * @param    string $hook  The current admin page hook suffix.
 	 */
 	public function enqueue_styles( string $hook ): void {
 		// Only load on our settings page
@@ -84,6 +86,7 @@ class Admin {
 	 * Register the JavaScript for the admin area.
 	 *
 	 * @since    1.0.0
+	 * @param    string $hook  The current admin page hook suffix.
 	 */
 	public function enqueue_scripts( string $hook ): void {
 		// Only load on our settings page
@@ -493,6 +496,7 @@ class Admin {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'wpr_history';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Export operation, caching not appropriate.
 		$results = $wpdb->get_results(
 			"SELECT * FROM {$table_name} ORDER BY republished_at DESC LIMIT 10000",
 			ARRAY_A
@@ -540,6 +544,7 @@ class Admin {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'wpr_audit';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Export operation, caching not appropriate.
 		$results = $wpdb->get_results(
 			"SELECT * FROM {$table_name} ORDER BY created_at DESC LIMIT 10000",
 			ARRAY_A
@@ -650,6 +655,7 @@ class Admin {
 	 * @return   string
 	 */
 	private function generate_csv( array $data, array $headers ): string {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Using php://temp stream, not filesystem.
 		$output = fopen( 'php://temp', 'r+' );
 
 		if ( false === $output ) {
@@ -670,6 +676,7 @@ class Admin {
 
 		rewind( $output );
 		$csv_content = stream_get_contents( $output );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Using php://temp stream, not filesystem.
 		fclose( $output );
 
 		return false !== $csv_content ? $csv_content : '';
@@ -916,7 +923,7 @@ class Admin {
 		$raw_rate_limit = $input['api_rate_limit_seconds'] ?? $defaults['api_rate_limit_seconds'];
 		$rate_limit     = absint( $raw_rate_limit );
 
-		if ( $rate_limit < 60 && $rate_limit !== 1 ) {
+		if ( $rate_limit < 60 && 1 !== $rate_limit ) {
 			add_settings_error(
 				'wpr_settings',
 				'rate_limit_low',
@@ -960,6 +967,7 @@ class Admin {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'rd-post-republishing' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab selection for display only, no data modification.
 		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'overview';
 		$tabs        = [
 			'overview' => __( 'Overview', 'rd-post-republishing' ),

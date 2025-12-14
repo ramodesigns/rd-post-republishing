@@ -47,6 +47,11 @@ class Loader {
 	 * Add a new action to the collection to be registered with WordPress.
 	 *
 	 * @since    1.0.0
+	 * @param    string $hook          The name of the WordPress action that is being registered.
+	 * @param    object $component     A reference to the instance of the object on which the action is defined.
+	 * @param    string $callback      The name of the function definition on the $component.
+	 * @param    int    $priority      Optional. The priority at which the function should be fired. Default is 10.
+	 * @param    int    $accepted_args Optional. The number of arguments that should be passed to the $callback. Default is 1.
 	 */
 	public function add_action(
 		string $hook,
@@ -62,6 +67,11 @@ class Loader {
 	 * Add a new filter to the collection to be registered with WordPress.
 	 *
 	 * @since    1.0.0
+	 * @param    string $hook          The name of the WordPress filter that is being registered.
+	 * @param    object $component     A reference to the instance of the object on which the filter is defined.
+	 * @param    string $callback      The name of the function definition on the $component.
+	 * @param    int    $priority      Optional. The priority at which the function should be fired. Default is 10.
+	 * @param    int    $accepted_args Optional. The number of arguments that should be passed to the $callback. Default is 1.
 	 */
 	public function add_filter(
 		string $hook,
@@ -78,7 +88,12 @@ class Loader {
 	 * collection.
 	 *
 	 * @since    1.0.0
-	 * @param    array<int, array{hook: string, component: object, callback: string, priority: int, accepted_args: int}> $hooks  The collection of hooks.
+	 * @param    array<int, array{hook: string, component: object, callback: string, priority: int, accepted_args: int}> $hooks         The collection of hooks.
+	 * @param    string                                                                                                  $hook          The name of the WordPress hook.
+	 * @param    object                                                                                                  $component     A reference to the instance of the object.
+	 * @param    string                                                                                                  $callback      The name of the callback function.
+	 * @param    int                                                                                                     $priority      The priority for the hook.
+	 * @param    int                                                                                                     $accepted_args The number of arguments the callback accepts.
 	 * @return   array<int, array{hook: string, component: object, callback: string, priority: int, accepted_args: int}>
 	 */
 	private function add(

@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 /**
  * The plugin bootstrap file
  *
@@ -28,6 +25,8 @@ declare(strict_types=1);
  * Text Domain:       rd-post-republishing
  * Domain Path:       /languages
  */
+
+declare(strict_types=1);
 
 use WPR\Republisher\Core\Activator;
 use WPR\Republisher\Core\Deactivator;
@@ -59,21 +58,21 @@ define( 'RD_POST_REPUBLISHING_URL', plugin_dir_url( __FILE__ ) );
 /**
  * Load Composer autoloader if available.
  */
-$autoloader = RD_POST_REPUBLISHING_PATH . 'vendor/autoload.php';
-if ( file_exists( $autoloader ) ) {
-	require_once $autoloader;
+$wpr_autoloader = RD_POST_REPUBLISHING_PATH . 'vendor/autoload.php';
+if ( file_exists( $wpr_autoloader ) ) {
+	require_once $wpr_autoloader;
 } else {
 	// Fallback manual autoloader for development without Composer
 	spl_autoload_register(
-		static function ( string $class ): void {
+		static function ( string $classname ): void {
 			$prefix = 'WPR\\Republisher\\';
 
 			$len = strlen( $prefix );
-			if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+			if ( strncmp( $prefix, $classname, $len ) !== 0 ) {
 				return;
 			}
 
-			$relative_class = substr( $class, $len );
+			$relative_class = substr( $classname, $len );
 
 			// Map namespaces to directories
 			$namespace_map = [
@@ -101,7 +100,7 @@ if ( file_exists( $autoloader ) ) {
  *
  * @since    1.0.0
  */
-function activate_rd_post_republishing(): void {
+function wpr_activate(): void {
 	Activator::activate();
 }
 
@@ -110,12 +109,12 @@ function activate_rd_post_republishing(): void {
  *
  * @since    1.0.0
  */
-function deactivate_rd_post_republishing(): void {
+function wpr_deactivate(): void {
 	Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_rd_post_republishing' );
-register_deactivation_hook( __FILE__, 'deactivate_rd_post_republishing' );
+register_activation_hook( __FILE__, 'wpr_activate' );
+register_deactivation_hook( __FILE__, 'wpr_deactivate' );
 
 /**
  * Run database migrations if needed.
@@ -127,7 +126,7 @@ register_deactivation_hook( __FILE__, 'deactivate_rd_post_republishing' );
  *
  * @since    1.0.0
  */
-function maybe_migrate_rd_post_republishing(): void {
+function wpr_maybe_migrate(): void {
 	// Only run migrations in admin or during cron
 	if ( ! is_admin() && ! wp_doing_cron() && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 		return;
@@ -146,15 +145,15 @@ function maybe_migrate_rd_post_republishing(): void {
  *
  * @since    1.0.0
  */
-function run_rd_post_republishing(): void {
+function wpr_run(): void {
 	// Run migrations if needed (checks internally if necessary)
-	maybe_migrate_rd_post_republishing();
+	wpr_maybe_migrate();
 
 	$plugin = new Plugin();
 	$plugin->run();
 }
 
-run_rd_post_republishing();
+wpr_run();
 
 /**
  * Register WP-CLI commands if available.

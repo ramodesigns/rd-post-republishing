@@ -53,6 +53,7 @@ class Logger {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -60,6 +61,7 @@ class Logger {
 	 * Whether debug mode is enabled.
 	 *
 	 * @since    1.0.0
+	 * @var      bool
 	 */
 	private bool $debug_mode;
 
@@ -67,6 +69,7 @@ class Logger {
 	 * Singleton instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Logger|null
 	 */
 	private static ?Logger $instance = null;
 
@@ -345,11 +348,12 @@ class Logger {
 	 * @since    1.0.0
 	 */
 	public function get_memory_usage(): string {
-		$bytes = memory_get_usage( true );
-		$units = [ 'B', 'KB', 'MB', 'GB' ];
-		$index = 0;
+		$bytes       = memory_get_usage( true );
+		$units       = [ 'B', 'KB', 'MB', 'GB' ];
+		$units_count = count( $units );
+		$index       = 0;
 
-		while ( $bytes >= 1024 && $index < count( $units ) - 1 ) {
+		while ( $bytes >= 1024 && $index < $units_count - 1 ) {
 			$bytes /= 1024;
 			++$index;
 		}
@@ -363,11 +367,12 @@ class Logger {
 	 * @since    1.0.0
 	 */
 	public function get_peak_memory_usage(): string {
-		$bytes = memory_get_peak_usage( true );
-		$units = [ 'B', 'KB', 'MB', 'GB' ];
-		$index = 0;
+		$bytes       = memory_get_peak_usage( true );
+		$units       = [ 'B', 'KB', 'MB', 'GB' ];
+		$units_count = count( $units );
+		$index       = 0;
 
-		while ( $bytes >= 1024 && $index < count( $units ) - 1 ) {
+		while ( $bytes >= 1024 && $index < $units_count - 1 ) {
 			$bytes /= 1024;
 			++$index;
 		}
