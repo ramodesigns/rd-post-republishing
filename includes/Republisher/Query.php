@@ -36,6 +36,7 @@ class Query {
 	 * WordPress database instance.
 	 *
 	 * @since    1.0.0
+	 * @var      \wpdb
 	 */
 	private \wpdb $wpdb;
 
@@ -43,6 +44,7 @@ class Query {
 	 * Repository instance for data access.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 

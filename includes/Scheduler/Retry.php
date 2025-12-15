@@ -57,6 +57,7 @@ class Retry {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -64,6 +65,7 @@ class Retry {
 	 * Engine instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Engine
 	 */
 	private Engine $engine;
 

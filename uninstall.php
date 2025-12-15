@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 /**
  * Fired when the plugin is uninstalled.
  *
@@ -15,6 +12,8 @@ declare(strict_types=1);
  *
  * @package    RD_Post_Republishing
  */
+
+declare(strict_types=1);
 
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
@@ -233,8 +232,8 @@ class WPR_Uninstaller {
 }
 
 // Run the uninstaller
-$uninstaller = new WPR_Uninstaller();
-$uninstaller->run();
+$wpr_uninstaller = new WPR_Uninstaller();
+$wpr_uninstaller->run();
 
 // Clear object cache after all cleanup
 if ( function_exists( 'wp_cache_flush' ) ) {

@@ -60,6 +60,7 @@ class Migrator {
 	 * WordPress database instance.
 	 *
 	 * @since    1.0.0
+	 * @var      \wpdb
 	 */
 	private \wpdb $wpdb;
 
