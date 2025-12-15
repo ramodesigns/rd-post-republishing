@@ -114,6 +114,10 @@ class WPR_Uninstaller {
 
 	/**
 	 * Delete all plugin options.
+	 *
+	 * Note: We explicitly list all options rather than using wildcard deletion
+	 * to avoid accidentally deleting WordPress core options if the site uses
+	 * 'wpr_' as its table prefix (which would make user_roles = 'wpr_user_roles').
 	 */
 	private function delete_options(): void {
 		$options = [
@@ -122,16 +126,14 @@ class WPR_Uninstaller {
 			'wpr_activation_time',
 			'wpr_last_run',
 			'wpr_last_cleanup',
+			'wpr_api_rate_limit',
+			'wpr_debug_mode',
+			'wpr_dry_run_mode',
 		];
 
 		foreach ( $options as $option ) {
 			delete_option( $option );
 		}
-
-		// Also delete any options that might have been added with a prefix pattern
-		$this->wpdb->query(
-			"DELETE FROM {$this->wpdb->options} WHERE option_name LIKE 'wpr_%'"
-		);
 	}
 
 	/**
