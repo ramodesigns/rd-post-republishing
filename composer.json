@@ -1,0 +1,55 @@
+{
+    "name": "ramodesigns/rd-post-republishing",
+    "description": "A WordPress Post Republishing Tool for SEO Benefit",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Paul Ramotowski",
+            "email": "paulramotowski@gmail.com",
+            "homepage": "https://www.paulramotowski.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.6",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "php-stubs/wordpress-stubs": "^6.4",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/phpstan": "^1.10",
+        "phpunit/phpunit": "^10.0",
+        "squizlabs/php_codesniffer": "^3.7",
+        "szepeviktor/phpstan-wordpress": "^1.3",
+        "wp-coding-standards/wpcs": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WPR\\Republisher\\": "includes/",
+            "WPR\\Republisher\\CLI\\": "cli/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WPR\\Republisher\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "phpcs": "phpcs --standard=WordPress",
+        "phpcbf": "phpcbf --standard=WordPress",
+        "phpstan": "phpstan analyse",
+        "test": "phpunit",
+        "check": [
+            "@phpcs",
+            "@phpstan"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    }
+}

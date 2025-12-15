@@ -1,0 +1,718 @@
+# Copyright (C) 2024 Paul Ramotowski
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: RD - Post Republishing 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/rd-post-republishing\n"
+"POT-Creation-Date: 2024-12-07T00:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: WP-CLI\n"
+"X-Domain: rd-post-republishing\n"
+
+#. Plugin Name of the plugin
+msgid "RD - Post Republishing"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://www.ramodesigns.co.uk"
+msgstr ""
+
+#. Description of the plugin
+msgid "A WordPress Post Republishing Tool for SEO Benefit"
+msgstr ""
+
+#. Author of the plugin
+msgid "Paul Ramotowski"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.paulramotowski.com/"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Run dry-run simulation?"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Trigger manual republishing now?"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Operation completed successfully."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Post Republishing"
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$d: number of posts to republish, %2$d: total eligible posts
+msgid "Dry-run complete. %1$d of %2$d eligible posts would be republished."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %d: number of republished posts
+msgid "Successfully republished %d posts."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Republishing failed."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "No history records to export."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "ID"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Post ID"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Old Date"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "New Date"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Triggered By"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Status"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Error Message"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Execution Time (ms)"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Republished At"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "No audit records to export."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Event Type"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Details"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "User ID"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "IP Address"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Created At"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Security check failed."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Overview"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Total Published Posts"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Eligible for Republishing"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Republished Today"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Failed Today"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "System Status"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "WP Cron"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Enabled"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Disabled"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Next Scheduled Run"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Not scheduled"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Last Run Status"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Success"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Unknown"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Quick Actions"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Run Dry-Run"
+msgstr ""
+
+#: admin/views/tab-overview.php
+msgid "Manual Trigger"
+msgstr ""
+
+#: admin/views/tab-schedule.php
+msgid "Schedule"
+msgstr ""
+
+#: admin/views/tab-schedule.php
+msgid "7-Day Outlook"
+msgstr ""
+
+#: admin/views/tab-schedule.php
+msgid "Today"
+msgstr ""
+
+#: admin/views/tab-schedule.php
+msgid "Posts scheduled for republishing today"
+msgstr ""
+
+#: admin/views/tab-schedule.php
+msgid "No posts scheduled for today."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Settings"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Post Types"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Select which post types to include in republishing."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Daily Quota"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Number of posts"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Percentage of eligible"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "posts per day"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Maximum 50 posts per day."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Time Range"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Start Hour"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "End Hour"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Posts will be republished with random times within this range."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Minimum Post Age"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "days"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Only republish posts older than this. Range: 7-180 days."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Maintain Chronological Order"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Keep posts in their original order relative to each other."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Category Filter"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "No filter"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Whitelist (only these)"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Blacklist (exclude these)"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Select Categories"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Advanced Options"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Enable WP Cron"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Automatically run republishing via WordPress cron."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "API Rate Limit"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "seconds"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Minimum time between API trigger requests."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Debug Mode"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Enable verbose logging for troubleshooting."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Dry-Run Mode"
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Simulate republishing without making changes."
+msgstr ""
+
+#: admin/views/tab-settings.php
+msgid "Save Settings"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "History & Logs"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Republishing History"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Audit Log"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Status:"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "All Statuses"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Failed"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Retrying"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Post Type:"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "All Types"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Filter"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Clear Filters"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Export CSV"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Post"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Type"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Original Date"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Republish Date"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Trigger"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Time"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "No history records found."
+msgstr ""
+
+#: admin/views/tab-logs.php
+#. translators: %d: post ID
+msgid "Post #%d (deleted)"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Action:"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "All Actions"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Settings Updated"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Setting Changed"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Settings Created"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Clear Filter"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Date/Time"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "User"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Action"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Setting"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "No audit records found."
+msgstr ""
+
+#: admin/views/tab-logs.php
+#. translators: %d: user ID
+msgid "User #%d"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "View Changes"
+msgstr ""
+
+#: admin/views/tab-logs.php
+#. translators: %s: number of items
+msgid "%s item"
+msgid_plural "%s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/views/tab-logs.php
+msgid "First page"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Previous page"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "of"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Next page"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Last page"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "History and audit logs are automatically purged after 365 days."
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Setting Changes"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "Previous Value"
+msgstr ""
+
+#: admin/views/tab-logs.php
+msgid "New Value"
+msgstr ""
+
+#: includes/Scheduler/Cron.php
+msgid "Every 30 Minutes (WPR Retry)"
+msgstr ""
+
+#: includes/Api/RestController.php
+msgid "Republishing triggered successfully."
+msgstr ""
+
+#: includes/Api/RestController.php
+msgid "Rate limit exceeded. Please try again later."
+msgstr ""
+
+#: includes/Api/RestController.php
+msgid "No posts to republish."
+msgstr ""
+
+#: cli/Commands.php
+msgid "Starting republishing batch..."
+msgstr ""
+
+#: cli/Commands.php
+msgid "Dry-run mode is enabled. No posts were actually republished."
+msgstr ""
+
+#: cli/Commands.php
+msgid "Running dry-run simulation..."
+msgstr ""
+
+#: cli/Commands.php
+msgid "No eligible posts found for republishing."
+msgstr ""
+
+#: cli/Commands.php
+#. translators: %d: number of posts
+msgid "%d posts would be republished."
+msgstr ""
+
+#: cli/Commands.php
+msgid "Days must be a positive integer."
+msgstr ""
+
+#: cli/Commands.php
+#. translators: %d: retention days
+msgid "This will delete all records older than %d days. Continue?"
+msgstr ""
+
+#: cli/Commands.php
+#. translators: %d: retention days
+msgid "Cleaning up records older than %d days..."
+msgstr ""
+
+#: cli/Commands.php
+#. translators: %1$d: history count, %2$d: audit count, %3$d: API log count, %4$d: total count
+msgid "Cleanup complete. Deleted %1$d history, %2$d audit, %3$d API log records (total: %4$d)."
+msgstr ""
+
+#: cli/Commands.php
+msgid "Plugin Settings:"
+msgstr ""
+
+#: cli/Commands.php
+msgid "Scheduled Events:"
+msgstr ""
+
+#: cli/Commands.php
+msgid "Recent Activity:"
+msgstr ""
+
+#: cli/Commands.php
+#. translators: %1$d: eligible posts count, %2$d: quota
+msgid "Eligible posts: %1$d (quota: %2$d)"
+msgstr ""
+
+#: cli/Commands.php
+msgid "Cron events rescheduled."
+msgstr ""
+
+#: cli/Commands.php
+#. translators: %s: next run timestamp
+msgid "Next daily republishing: %s"
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$s: WP Cron constant name, %2$s: plugin settings URL
+msgid "<strong>WP Cron Disabled:</strong> The <code>%1$s</code> constant is set to true, but the Post Republishing plugin has WP Cron enabled. Scheduled republishing will not work. Either <a href=\"%2$s\">disable WP Cron in plugin settings</a> and use the REST API or WP-CLI instead, or enable WP Cron at the system level."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: plugin settings URL
+msgid "<strong>Cron Events Not Scheduled:</strong> Post Republishing has WP Cron enabled, but the scheduled events are missing. <a href=\"%s\">Visit the settings page</a> to trigger rescheduling, or deactivate and reactivate the plugin."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$s: scheduled time, %2$s: WP Cron info URL
+msgid "<strong>Scheduled Event Overdue:</strong> The daily republishing was scheduled for %1$s but hasn't run yet. This may indicate WP Cron isn't working correctly. Consider <a href=\"%2$s\" target=\"_blank\">setting up a real cron job</a> for better reliability."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "unknown"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "<strong>Alternate Cron Active:</strong> WordPress is using alternate cron mode. Scheduled republishing may be slightly delayed as it relies on site visits to trigger cron jobs."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "No post types selected. Please select at least one post type for republishing."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: comma-separated list of invalid post type names
+msgid "Invalid post types removed: %s"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Daily quota must be at least 1. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %d: the value that was submitted
+msgid "Daily quota cannot exceed 50 posts per day. Your value of %d has been reduced to 50."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Start hour must be between 0 and 23. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "End hour must be between 0 and 23. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %1$d: start hour, %2$d: end hour
+msgid "Note: Start hour (%1$d:00) is after end hour (%2$d:00). This creates an overnight publishing window."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Minimum post age must be at least 7 days. Value has been corrected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %d: the value that was submitted
+msgid "Minimum post age cannot exceed 180 days. Your value of %d has been reduced to 180."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Debug mode is enabled, but WP_DEBUG is not defined. Logs will only appear if WP_DEBUG_LOG is also enabled."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Dry-run mode is active. Posts will NOT actually be republished until this is disabled."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "whitelist"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "blacklist"
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: filter type (whitelist/blacklist)
+msgid "Category %s is enabled but no categories are selected. All posts will be affected."
+msgstr ""
+
+#: includes/Admin/Admin.php
+#. translators: %s: comma-separated list of invalid category IDs
+msgid "Invalid category IDs removed: %s"
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "API rate limit below 60 seconds may cause excessive server load. Consider increasing this value."
+msgstr ""
+
+#: includes/Admin/Admin.php
+msgid "Settings saved successfully."
+msgstr ""

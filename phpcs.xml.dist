@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<ruleset name="RD Post Republishing Coding Standards">
+    <description>WordPress Coding Standards for RD Post Republishing plugin</description>
+
+    <!-- What to scan -->
+    <file>.</file>
+
+    <!-- Exclude paths -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <exclude-pattern>/tests/*</exclude-pattern>
+    <exclude-pattern>/.git/*</exclude-pattern>
+    <exclude-pattern>/languages/*</exclude-pattern>
+    <exclude-pattern>/admin/views/*</exclude-pattern>
+    <exclude-pattern>/admin/partials/*</exclude-pattern>
+    <exclude-pattern>/public/partials/*</exclude-pattern>
+    <exclude-pattern>*/index.php</exclude-pattern>
+
+    <!-- Only scan PHP files -->
+    <arg name="extensions" value="php"/>
+
+    <!-- Show progress and sniff codes in reports -->
+    <arg value="ps"/>
+
+    <!-- Enable colors in report -->
+    <arg name="colors"/>
+
+    <!-- Parallel processing -->
+    <arg name="parallel" value="8"/>
+
+    <!-- Use WordPress Coding Standards -->
+    <rule ref="WordPress">
+        <!-- Allow short array syntax [] -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+
+        <!-- Allow short ternary operator (?:) -->
+        <exclude name="Universal.Operators.DisallowShortTernary"/>
+
+        <!-- Relax inline comment requirements -->
+        <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+
+        <!-- Allow dynamic table names in wpdb queries (they're validated elsewhere) -->
+        <exclude name="WordPress.DB.PreparedSQL.InterpolatedNotPrepared"/>
+        <exclude name="WordPress.DB.PreparedSQL.NotPrepared"/>
+    </rule>
+
+    <!-- Use WordPress-Extra for additional checks -->
+    <rule ref="WordPress-Extra">
+        <!-- Exclude rules that conflict with PHP 8.2 features -->
+        <exclude name="Generic.Commenting.DocComment.MissingShort"/>
+    </rule>
+
+    <!-- Use WordPress-Docs for inline documentation standards -->
+    <rule ref="WordPress-Docs"/>
+
+    <!-- PHP Compatibility -->
+    <rule ref="PHPCompatibilityWP"/>
+    <config name="testVersion" value="8.2-"/>
+
+    <!-- Minimum WordPress version -->
+    <config name="minimum_wp_version" value="6.6"/>
+
+    <!-- Text domain for translations -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="rd-post-republishing"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Prefix for hooks, options, etc. -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="wpr_"/>
+                <element value="rd_post_republishing"/>
+                <element value="WPR\Republisher"/>
+            </property>
+        </properties>
+        <!-- Exclude namespace checks for PSR-4 autoloaded files -->
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedNamespaceFound"/>
+        <!-- Allow short prefixes (they're used consistently) -->
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed"/>
+    </rule>
+
+    <!-- Allow PSR-4 style filenames -->
+    <rule ref="WordPress.Files.FileName">
+        <properties>
+            <property name="strict_class_file_names" value="false"/>
+        </properties>
+        <!-- Exclude for PSR-4 autoloaded files -->
+        <exclude-pattern>/includes/*</exclude-pattern>
+        <exclude-pattern>/cli/*</exclude-pattern>
+    </rule>
+
+    <!-- File comment is optional for namespaced files -->
+    <rule ref="Squiz.Commenting.FileComment.Missing">
+        <exclude-pattern>/includes/*</exclude-pattern>
+        <exclude-pattern>/cli/*</exclude-pattern>
+    </rule>
+
+    <!-- Allow modern PHP class instantiation without parentheses when no args -->
+    <rule ref="PSR12.Classes.ClassInstantiation"/>
+
+    <!-- Ensure proper escaping -->
+    <rule ref="WordPress.Security.EscapeOutput"/>
+    <rule ref="WordPress.Security.NonceVerification"/>
+    <rule ref="WordPress.Security.ValidatedSanitizedInput"/>
+
+    <!-- Database security -->
+    <rule ref="WordPress.DB.PreparedSQL"/>
+    <rule ref="WordPress.DB.PreparedSQLPlaceholders"/>
+</ruleset>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         requireCoverageMetadata="false"
+         beStrictAboutCoverageMetadata="false"
+         beStrictAboutOutputDuringTests="true"
+         colors="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">includes</directory>
+            <directory suffix=".php">cli</directory>
+        </include>
+        <exclude>
+            <file>includes/index.php</file>
+        </exclude>
+    </source>
+
+    <coverage>
+        <report>
+            <clover outputFile="build/logs/clover.xml"/>
+            <html outputDirectory="build/coverage"/>
+            <text outputFile="php://stdout" showOnlySummary="true"/>
+        </report>
+    </coverage>
+
+    <php>
+        <env name="WP_PHPUNIT__TESTS_CONFIG" value="tests/wp-config.php"/>
+        <const name="WP_DEBUG" value="true"/>
+        <const name="WP_DEBUG_LOG" value="true"/>
+        <const name="ABSPATH" value="/tmp/wordpress/"/>
+        <const name="WPR_TESTING" value="true"/>
+    </php>
+
+    <groups>
+        <exclude>
+            <group>slow</group>
+        </exclude>
+    </groups>
+</phpunit>
