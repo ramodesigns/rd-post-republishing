@@ -43,6 +43,7 @@ class Plugin {
 	 * the plugin.
 	 *
 	 * @since    1.0.0
+	 * @var      Loader
 	 */
 	protected Loader $loader;
 
@@ -50,6 +51,7 @@ class Plugin {
 	 * The unique identifier of this plugin.
 	 *
 	 * @since    1.0.0
+	 * @var      string
 	 */
 	protected readonly string $plugin_name;
 
@@ -57,6 +59,7 @@ class Plugin {
 	 * The current version of the plugin.
 	 *
 	 * @since    1.0.0
+	 * @var      string
 	 */
 	protected readonly string $version;
 

@@ -182,6 +182,7 @@ class Cache {
 
 		// LiteSpeed Cache 3.x+
 		if ( class_exists( 'LiteSpeed\Purge' ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Intentionally firing LiteSpeed Cache hook.
 			do_action( 'litespeed_purge_post', $post_id );
 			return true;
 		}
@@ -269,6 +270,7 @@ class Cache {
 
 		// LiteSpeed Cache
 		if ( class_exists( 'LiteSpeed\Purge' ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Intentionally firing LiteSpeed Cache hook.
 			do_action( 'litespeed_purge_all' );
 			$results['litespeed'] = true;
 		}

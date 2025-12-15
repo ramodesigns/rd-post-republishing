@@ -48,6 +48,7 @@ class Schema {
 	 * WordPress database instance.
 	 *
 	 * @since    1.0.0
+	 * @var      \wpdb
 	 */
 	private \wpdb $wpdb;
 
@@ -55,6 +56,7 @@ class Schema {
 	 * Table name prefix.
 	 *
 	 * @since    1.0.0
+	 * @var      string
 	 */
 	private readonly string $prefix;
 

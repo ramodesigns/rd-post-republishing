@@ -50,6 +50,7 @@ class AuditTrail {
 	 * Repository instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Repository
 	 */
 	private Repository $repository;
 
@@ -57,6 +58,7 @@ class AuditTrail {
 	 * Logger instance.
 	 *
 	 * @since    1.0.0
+	 * @var      Logger
 	 */
 	private Logger $logger;
 
