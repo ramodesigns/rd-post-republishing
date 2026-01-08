@@ -21,10 +21,18 @@ class Preferences_Controller
     private $namespace = 'postmetadata/v1/preferences';
 
     /**
+     * Preferences service instance
+     *
+     * @var Preferences_Service
+     */
+    private $preferences_service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
+        $this->preferences_service = new Preferences_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
 
@@ -63,13 +71,22 @@ class Preferences_Controller
     private function get_endpoint_args()
     {
         return array(
-            'post_ids' => array(
+            'preferences' => array(
                 'required' => true,
                 'type' => 'array',
-                'description' => 'Array of post IDs to optimize',
+                'description' => 'Array of key-value pairs to update',
                 'items' => array(
-                    'type' => 'integer',
-                    'minimum' => 1
+                    'type' => 'object',
+                    'properties' => array(
+                        'key' => array(
+                            'type' => 'string',
+                            'description' => 'Preference key (max 50 characters)'
+                        ),
+                        'value' => array(
+                            'type' => 'string',
+                            'description' => 'Preference value (max 500 characters)'
+                        )
+                    )
                 )
             )
         );
@@ -113,10 +130,51 @@ class Preferences_Controller
     public function handle_update_preferences_request($request)
     {
         try {
+            $preferences = $request->get_param('preferences');
+
+            if (empty($preferences) || !is_array($preferences)) {
+                return new WP_REST_Response(array(
+                    'success' => false,
+                    'message' => 'No preferences provided',
+                    'timestamp' => current_time('mysql')
+                ), 400);
+            }
+
+            $result = $this->preferences_service->update_preferences($preferences);
+
+            $successful_count = count($result['successful']);
+            $failed_count = count($result['failed']);
+            $total = $result['total'];
+
+            // All successful
+            if ($failed_count === 0) {
+                return new WP_REST_Response(array(
+                    'success' => true,
+                    'message' => 'All preferences updated successfully',
+                    'updated' => $result['successful'],
+                    'timestamp' => current_time('mysql')
+                ), 200);
+            }
+
+            // All failed
+            if ($successful_count === 0) {
+                return new WP_REST_Response(array(
+                    'success' => false,
+                    'message' => 'All preferences failed validation',
+                    'failed' => $result['failed'],
+                    'timestamp' => current_time('mysql')
+                ), 400);
+            }
+
+            // Partial success (207 Multi-Status)
             return new WP_REST_Response(array(
-                'success' => true,
+                'success' => false,
+                'message' => 'Some preferences failed validation',
+                'updated' => $result['successful'],
+                'failed' => $result['failed'],
                 'timestamp' => current_time('mysql')
-            ), 200);
+            ), 207);
+
         } catch (Exception $e) {
             return new WP_Error(
                 'update_preference_error',
