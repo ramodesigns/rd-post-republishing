@@ -64,7 +64,8 @@ register_deactivation_hook( __FILE__, 'deactivate_rd_post_republishing' );
  */
 require plugin_dir_path( __FILE__ ) . 'includes/class-rd-post-republishing.php';
 
-require plugin_dir_path( __FILE__ ) . 'controllers/index.php';
+require plugin_dir_path( __FILE__ ) . 'src/controllers/index.php';
+require plugin_dir_path( __FILE__ ) . 'src/services/index.php';
 
 
 /**
