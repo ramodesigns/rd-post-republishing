@@ -190,10 +190,15 @@ class Preferences_Controller
      * @param WP_REST_Request $request
      * @return WP_REST_Response|WP_Error
      */
-    public function handle_retrieve_preferences_request($request) {
+    public function handle_retrieve_preferences_request($request)
+    {
         try {
+            $preferences = $this->preferences_service->get_all_preferences();
+
             return new WP_REST_Response(array(
                 'success' => true,
+                'data' => $preferences,
+                'count' => count($preferences),
                 'timestamp' => current_time('mysql')
             ), 200);
         } catch (Exception $e) {

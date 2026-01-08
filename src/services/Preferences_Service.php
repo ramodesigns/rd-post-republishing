@@ -30,6 +30,29 @@ class Preferences_Service
     }
 
     /**
+     * Get all preferences from the database
+     *
+     * @return array Array of key-value pairs
+     */
+    public function get_all_preferences()
+    {
+        global $wpdb;
+
+        $table_name = Init_Setup::get_table_name();
+
+        $results = $wpdb->get_results(
+            "SELECT `key`, `value` FROM $table_name ORDER BY id ASC",
+            ARRAY_A
+        );
+
+        if ($results === null) {
+            return array();
+        }
+
+        return $results;
+    }
+
+    /**
      * Update multiple preferences
      *
      * @param array $preferences Array of key-value pairs
