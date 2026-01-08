@@ -93,10 +93,24 @@ class Republish_Controller
         try {
             $oldest_post = $this->service->find_oldest_post();
 
+            if (!$oldest_post) {
+                return new WP_Error(
+                    'no_posts_found',
+                    __('No published posts found to republish.'),
+                    array('status' => 404)
+                );
+            }
+
+            $result = $this->service->republish_post($oldest_post['id']);
+
+            if (is_wp_error($result)) {
+                return $result;
+            }
+
             return new WP_REST_Response(array(
-                'success'     => true,
-                'timestamp'   => current_time('mysql'),
-                'oldest_post' => $oldest_post,
+                'success'        => true,
+                'timestamp'      => current_time('mysql'),
+                'republished_post' => $result,
             ), 200);
         } catch (Exception $e) {
             return new WP_Error(
