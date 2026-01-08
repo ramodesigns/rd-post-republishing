@@ -1,10 +1,11 @@
 <?php
 /**
- * WordPress REST API Class for Post Metadata Optimization
+ * WordPress REST API Class for User Preferences
  *
- * Registers two REST API endpoints:
- * - postmetadata/v1/optimizepost (protected)
- * - postmetadata/v1/optimizepostpublic (public)
+ * Registers REST API endpoints:
+ * - postmetadata/v1/preferences/update (protected)
+ * - postmetadata/v1/preferences/retrieve (protected)
+ * - postmetadata/v1/preferences/retrievepublic (public)
  */
 
 if (!defined('ABSPATH')) {
@@ -131,7 +132,7 @@ class Preferences_Controller
      * @param WP_REST_Request $request
      * @return WP_REST_Response|WP_Error
      */
-    public function handle_retriee_preferences_request($request) {
+    public function handle_retrieve_preferences_request($request) {
         try {
             return new WP_REST_Response(array(
                 'success' => true,
@@ -139,7 +140,7 @@ class Preferences_Controller
             ), 200);
         } catch (Exception $e) {
             return new WP_Error(
-                'update_preference_error',
+                'retrieve_preference_error',
                 __('An error occurred: ') . $e->getMessage(),
                 array('status' => 500)
             );
