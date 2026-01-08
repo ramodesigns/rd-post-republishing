@@ -21,10 +21,16 @@ class Republish_Controller
     private $namespace = 'postmetadata/v1/republish';
 
     /**
+     * Service instance
+     */
+    private $service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
+        $this->service = new Republish_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
 
@@ -85,13 +91,16 @@ class Republish_Controller
      */
     public function handle_republish_request($request) {
         try {
+            $oldest_post = $this->service->find_oldest_post();
+
             return new WP_REST_Response(array(
-                'success' => true,
-                'timestamp' => current_time('mysql')
+                'success'     => true,
+                'timestamp'   => current_time('mysql'),
+                'oldest_post' => $oldest_post,
             ), 200);
         } catch (Exception $e) {
             return new WP_Error(
-                'retrieve_preference_error',
+                'republish_error',
                 __('An error occurred: ') . $e->getMessage(),
                 array('status' => 500)
             );
