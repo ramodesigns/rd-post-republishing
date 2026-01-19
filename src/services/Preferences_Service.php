@@ -53,6 +53,29 @@ class Preferences_Service
     }
 
     /**
+     * Get a specific preference by key
+     *
+     * @param string $key The preference key to retrieve
+     * @return array|null The preference as key-value pair, or null if not found
+     */
+    public function get_preference_by_key($key)
+    {
+        global $wpdb;
+
+        $table_name = Init_Setup::get_table_name();
+
+        $result = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT `key`, `value` FROM $table_name WHERE `key` = %s",
+                $key
+            ),
+            ARRAY_A
+        );
+
+        return $result;
+    }
+
+    /**
      * Update multiple preferences
      *
      * @param array $preferences Array of key-value pairs
