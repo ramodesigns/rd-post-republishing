@@ -70,7 +70,18 @@ class Logging_Controller
      */
     private function get_endpoint_args()
     {
-        return null;
+        return array(
+            'type' => array(
+                'required' => true,
+                'type' => 'string',
+                'description' => 'Log type for categorization (max 50 characters)'
+            ),
+            'entry' => array(
+                'required' => true,
+                'type' => 'string',
+                'description' => 'Log entry message (max 500 characters)'
+            )
+        );
     }
 
     /**
@@ -111,7 +122,26 @@ class Logging_Controller
     public function handle_add_log_request($request)
     {
         try {
+            $type = $request->get_param('type');
+            $entry = $request->get_param('entry');
 
+            $result = $this->logging_service->insert_log($type, $entry);
+
+            if ($result['success']) {
+                return new WP_REST_Response(array(
+                    'success' => true,
+                    'message' => 'Log entry added successfully',
+                    'id' => $result['id'],
+                    'timestamp' => current_time('mysql')
+                ), 201);
+            }
+
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Failed to add log entry',
+                'error' => $result['error'],
+                'timestamp' => current_time('mysql')
+            ), 400);
 
         } catch (Exception $e) {
             return new WP_Error(
@@ -131,6 +161,20 @@ class Logging_Controller
     public function handle_retrieve_log_request($request)
     {
         try {
+            $type = $request->get_param('type');
+
+            if ($type !== null && $type !== '') {
+                $logs = $this->logging_service->get_logs_of_type($type);
+            } else {
+                $logs = $this->logging_service->get_all_logs();
+            }
+
+            return new WP_REST_Response(array(
+                'success' => true,
+                'data' => $logs,
+                'count' => count($logs),
+                'timestamp' => current_time('mysql')
+            ), 200);
 
         } catch (Exception $e) {
             return new WP_Error(
