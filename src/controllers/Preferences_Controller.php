@@ -195,6 +195,18 @@ class Preferences_Controller
     public function handle_retrieve_preferences_request($request)
     {
         try {
+            $key = $request->get_param('key');
+
+            if ($key !== null && $key !== '') {
+                $preference = $this->preferences_service->get_preference_by_key($key);
+
+                return new WP_REST_Response(array(
+                    'success' => true,
+                    'data' => $preference,
+                    'timestamp' => current_time('mysql')
+                ), 200);
+            }
+
             $preferences = $this->preferences_service->get_all_preferences();
 
             return new WP_REST_Response(array(

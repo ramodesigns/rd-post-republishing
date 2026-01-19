@@ -1,9 +1,10 @@
 <?php
 /**
- * WordPress REST API Class for Logging
+ * WordPress REST API Class for Process
  *
  * Registers REST API endpoints:
- * -
+ * - postmetadata/v1/process/trigger (protected)
+ * - postmetadata/v1/process/triggerpublic (public)
  */
 
 if (!defined('ABSPATH')) {
@@ -19,18 +20,18 @@ class Process_Controller
     private $namespace = 'postmetadata/v1/process';
 
     /**
-     * Logging service instance
+     * Process service instance
      *
-     * @var Logging_Service
+     * @var Process_Service
      */
-    private $logging_service;
+    private $process_service;
 
     /**
      * Constructor
      */
     public function __construct()
     {
-        $this->logging_service = new Logging_Service();
+        $this->process_service = new Process_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
 
@@ -99,7 +100,7 @@ class Process_Controller
 
         } catch (Exception $e) {
             return new WP_Error(
-                'retrieve_log_error',
+                'process_error',
                 __('An error occurred: ') . $e->getMessage(),
                 array('status' => 500)
             );

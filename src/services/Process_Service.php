@@ -1,8 +1,8 @@
 <?php
 /**
- * Service class for managing logs
+ * Service class for managing the republish process
  *
- * Handles database operations for the rd_pr_log table
+ * Handles the execution of republishing operations
  */
 
 if (!defined('ABSPATH')) {
@@ -21,12 +21,13 @@ class Process_Service
     }
 
     /**
-     * Trigger republish process
+     * Execute the republish process
      *
+     * @return array Result of the process execution
      */
     public function execute_republish_process()
     {
-        //leave blank for now
+        // Leave blank for now
     }
 
 }
