@@ -25,13 +25,14 @@ class Rd_Post_Republishing_Activator {
 	/**
 	 * Plugin activation tasks.
 	 *
-	 * Creates the preferences database table.
+	 * Creates the database tables (preferences and log).
 	 *
 	 * @since    1.0.0
 	 */
 	public static function activate() {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'setup/Init_Setup.php';
 		Init_Setup::create_preferences_table();
+		Init_Setup::create_log_table();
 	}
 
 }

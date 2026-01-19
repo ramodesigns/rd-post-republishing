@@ -30,6 +30,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-// Load Init_Setup and drop the preferences table
+// Load Init_Setup and drop the plugin tables
 require_once plugin_dir_path( __FILE__ ) . 'setup/Init_Setup.php';
 Init_Setup::drop_preferences_table();
+Init_Setup::drop_log_table();
