@@ -6,6 +6,8 @@ new Preferences_Controller();
 require_once plugin_dir_path( __FILE__ ) . 'Republish_Controller.php';
 new Republish_Controller();
 
+require_once plugin_dir_path( __FILE__ ) . 'Process_Controller.php';
+new Process_Controller();
+
 require_once plugin_dir_path( __FILE__ ) . 'Logging_Controller.php';
 new Logging_Controller();
-
