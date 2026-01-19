@@ -113,7 +113,26 @@ class Process_Controller
     public function handle_trigger_process_request($request)
     {
         try {
+            $result = $this->process_service->execute_republish_process();
 
+            $response = array(
+                'success' => $result['success'],
+                'errors' => $result['errors'],
+                'timestamp' => current_time('mysql')
+            );
+
+            // Include additional data for testing if present
+            if (isset($result['posts_per_day'])) {
+                $response['posts_per_day'] = $result['posts_per_day'];
+            }
+            if (isset($result['republish_count_today'])) {
+                $response['republish_count_today'] = $result['republish_count_today'];
+            }
+            if (isset($result['posts_to_republish'])) {
+                $response['posts_to_republish'] = $result['posts_to_republish'];
+            }
+
+            return new WP_REST_Response($response, 200);
 
         } catch (Exception $e) {
             return new WP_Error(

@@ -124,6 +124,30 @@ class Logging_Service
     }
 
     /**
+     * Count logs of a specific type for today
+     *
+     * @param string $type The log type to count
+     * @return int Count of logs matching the type for today
+     */
+    public function count_logs_of_type_today($type)
+    {
+        global $wpdb;
+
+        $table_name = Init_Setup::get_log_table_name();
+        $today = current_time('Y-m-d');
+
+        $count = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE type = %s AND DATE(timestamp) = %s",
+                $type,
+                $today
+            )
+        );
+
+        return intval($count);
+    }
+
+    /**
      * Validate a log type and entry
      *
      * @param mixed $type The log type
