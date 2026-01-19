@@ -5,6 +5,8 @@
  * Registers REST API endpoints:
  * - postmetadata/v1/process/trigger (protected)
  * - postmetadata/v1/process/triggerpublic (public)
+ * - postmetadata/v1/process/validate (protected)
+ * - postmetadata/v1/process/validatepublic (public)
  */
 
 if (!defined('ABSPATH')) {
@@ -54,6 +56,21 @@ class Process_Controller
             'callback' => array($this, 'handle_trigger_process_request'),
             'permission_callback' => '__return_true'
         ));
+
+        // Validate endpoint (protected)
+        register_rest_route($this->namespace, '/validate', array(
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => array($this, 'handle_validate_process_request'),
+            //'permission_callback' => array($this, 'check_authentication'),
+            'permission_callback' => '__return_true'
+        ));
+
+        // Validate endpoint (public)
+        register_rest_route($this->namespace, '/validatepublic', array(
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => array($this, 'handle_validate_process_request'),
+            'permission_callback' => '__return_true'
+        ));
     }
 
     /**
@@ -101,6 +118,32 @@ class Process_Controller
         } catch (Exception $e) {
             return new WP_Error(
                 'process_error',
+                __('An error occurred: ') . $e->getMessage(),
+                array('status' => 500)
+            );
+        }
+    }
+
+    /**
+     * Handle validate process request
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response|WP_Error
+     */
+    public function handle_validate_process_request($request)
+    {
+        try {
+            $result = $this->process_service->validate_prerequisites();
+
+            return new WP_REST_Response(array(
+                'success' => $result['success'],
+                'errors' => $result['errors'],
+                'timestamp' => current_time('mysql')
+            ), 200);
+
+        } catch (Exception $e) {
+            return new WP_Error(
+                'validate_error',
                 __('An error occurred: ') . $e->getMessage(),
                 array('status' => 500)
             );
