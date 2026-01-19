@@ -1,11 +1,8 @@
 <?php
 /**
- * WordPress REST API Class for User Preferences
+ * Service class for republishing posts
  *
- * Registers REST API endpoints:
- * - postmetadata/v1/preferences/update (protected)
- * - postmetadata/v1/preferences/retrieve (protected)
- * - postmetadata/v1/preferences/retrievepublic (public)
+ * Handles republishing operations for WordPress posts
  */
 
 if (!defined('ABSPATH')) {
@@ -48,7 +45,14 @@ class Republish_Service
         return null;
     }
 
-    public function republish_post($id)
+    /**
+     * Republish a post with a new date
+     *
+     * @param int $id The post ID to republish
+     * @param int|null $timestamp Optional epoch timestamp for the new publish date
+     * @return array|WP_Error Result array on success, WP_Error on failure
+     */
+    public function republish_post($id, $timestamp = null)
     {
         $post = get_post($id);
 
@@ -60,15 +64,22 @@ class Republish_Service
             );
         }
 
-        $current_time = current_time('mysql');
-        $current_time_gmt = current_time('mysql', true);
+        // Use provided timestamp or current time
+        if ($timestamp !== null && is_numeric($timestamp)) {
+            $epoch = intval($timestamp);
+            $new_date = gmdate('Y-m-d H:i:s', $epoch + (get_option('gmt_offset') * HOUR_IN_SECONDS));
+            $new_date_gmt = gmdate('Y-m-d H:i:s', $epoch);
+        } else {
+            $new_date = current_time('mysql');
+            $new_date_gmt = current_time('mysql', true);
+        }
 
         $updated = wp_update_post(array(
             'ID'                => $id,
-            'post_date'         => $current_time,
-            'post_date_gmt'     => $current_time_gmt,
-            'post_modified'     => $current_time,
-            'post_modified_gmt' => $current_time_gmt,
+            'post_date'         => $new_date,
+            'post_date_gmt'     => $new_date_gmt,
+            'post_modified'     => $new_date,
+            'post_modified_gmt' => $new_date_gmt,
         ), true);
 
         if (is_wp_error($updated)) {
@@ -78,7 +89,7 @@ class Republish_Service
         return array(
             'id'           => $id,
             'title'        => $post->post_title,
-            'new_date'     => $current_time,
+            'new_date'     => $new_date,
             'permalink'    => get_permalink($id),
             'republished'  => true,
         );

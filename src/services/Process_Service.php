@@ -19,21 +19,63 @@ class Process_Service
     private $preferences_service;
 
     /**
+     * Logging service instance
+     *
+     * @var Logging_Service
+     */
+    private $logging_service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
         $this->preferences_service = new Preferences_Service();
+        $this->logging_service = new Logging_Service();
     }
 
     /**
      * Execute the republish process
      *
-     * @return array Result of the process execution
+     * @return array Result with 'success' (bool), 'errors' (array), and additional data
      */
     public function execute_republish_process()
     {
-        // Leave blank for now
+        $errors = array();
+
+        // First validate prerequisites
+        $validation_result = $this->validate_prerequisites();
+
+        if (!$validation_result['success']) {
+            return $validation_result;
+        }
+
+        // Get posts_per_day preference
+        $posts_per_day = intval($this->get_preference_value('posts_per_day'));
+
+        // Count republish logs for today
+        $republish_count_today = $this->logging_service->count_logs_of_type_today('republish');
+
+        // Check if we've already reached the daily limit
+        if ($republish_count_today >= $posts_per_day) {
+            $errors[] = "Daily republish limit reached. Already republished " . $republish_count_today . " of " . $posts_per_day . " posts today.";
+            return array(
+                'success' => false,
+                'errors' => $errors
+            );
+        }
+
+        // Calculate how many posts we can still republish today
+        $posts_to_republish = $posts_per_day - $republish_count_today;
+
+        // Temporary response for testing
+        return array(
+            'success' => true,
+            'errors' => $errors,
+            'posts_per_day' => $posts_per_day,
+            'republish_count_today' => $republish_count_today,
+            'posts_to_republish' => $posts_to_republish
+        );
     }
 
     /**
