@@ -17,7 +17,12 @@ class Init_Setup
     /**
      * Table name for preferences (without prefix)
      */
-    const TABLE_NAME = 'rd_pr_pref';
+    const TABLE_NAME_PREF = 'rd_pr_pref';
+
+    /**
+     * Table name for logs (without prefix)
+     */
+    const TABLE_NAME_LOG = 'rd_pr_log';
 
     /**
      * Constructor
@@ -28,14 +33,25 @@ class Init_Setup
     }
 
     /**
-     * Get the full table name with WordPress prefix
+     * Get the full preferences table name with WordPress prefix
      *
      * @return string
      */
     public static function get_table_name()
     {
         global $wpdb;
-        return $wpdb->prefix . self::TABLE_NAME;
+        return $wpdb->prefix . self::TABLE_NAME_PREF;
+    }
+
+    /**
+     * Get the full log table name with WordPress prefix
+     *
+     * @return string
+     */
+    public static function get_log_table_name()
+    {
+        global $wpdb;
+        return $wpdb->prefix . self::TABLE_NAME_LOG;
     }
 
     /**
@@ -71,6 +87,43 @@ class Init_Setup
         global $wpdb;
 
         $table_name = self::get_table_name();
+        $wpdb->query("DROP TABLE IF EXISTS $table_name");
+    }
+
+    /**
+     * Create the log table
+     *
+     * @return void
+     */
+    public static function create_log_table()
+    {
+        global $wpdb;
+
+        $table_name = self::get_log_table_name();
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            timestamp datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            type varchar(50) NOT NULL,
+            entry varchar(500) NOT NULL,
+            PRIMARY KEY (id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+
+    /**
+     * Drop the log table
+     *
+     * @return void
+     */
+    public static function drop_log_table()
+    {
+        global $wpdb;
+
+        $table_name = self::get_log_table_name();
         $wpdb->query("DROP TABLE IF EXISTS $table_name");
     }
 
