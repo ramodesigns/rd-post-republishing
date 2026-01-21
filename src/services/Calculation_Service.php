@@ -116,7 +116,7 @@ class Calculation_Service
      * Get post times for a given date
      *
      * @param string $date The date in dd-mm-yyyy format
-     * @return array Result with 'success' and 'times' array or 'errors' array
+     * @return array Result with 'success', 'previous_times' and 'future_times' arrays or 'errors' array
      */
     public function get_post_times($date)
     {
@@ -137,9 +137,60 @@ class Calculation_Service
         // Generate deterministic times based on the date
         $times = $this->generate_post_times($date, $publish_start_time, $publish_end_time, $posts_per_day);
 
+        // Split times into previous and future based on current date/time
+        $categorized_times = $this->categorize_times($date, $times);
+
         return array(
             'success' => true,
-            'times' => $times
+            'previous_times' => $categorized_times['previous_times'],
+            'future_times' => $categorized_times['future_times']
+        );
+    }
+
+    /**
+     * Categorize times into previous and future based on current date/time
+     *
+     * @param string $date The date in dd-mm-yyyy format
+     * @param array $times Array of times in hh:mm format
+     * @return array Array with 'previous_times' and 'future_times'
+     */
+    public function categorize_times($date, $times)
+    {
+        $previous_times = array();
+        $future_times = array();
+
+        // Parse the request date (dd-mm-yyyy)
+        $parts = explode('-', $date);
+        $day = (int) $parts[0];
+        $month = (int) $parts[1];
+        $year = (int) $parts[2];
+
+        // Create date string in Y-m-d format for comparison
+        $request_date = sprintf('%04d-%02d-%02d', $year, $month, $day);
+        $today = current_time('Y-m-d');
+
+        if ($request_date < $today) {
+            // Date is in the past - all times are previous
+            $previous_times = $times;
+        } elseif ($request_date > $today) {
+            // Date is in the future - all times are future
+            $future_times = $times;
+        } else {
+            // Date is today - split based on current time
+            $current_time = current_time('H:i');
+
+            foreach ($times as $time) {
+                if ($time < $current_time) {
+                    $previous_times[] = $time;
+                } else {
+                    $future_times[] = $time;
+                }
+            }
+        }
+
+        return array(
+            'previous_times' => $previous_times,
+            'future_times' => $future_times
         );
     }
 
