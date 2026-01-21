@@ -122,16 +122,26 @@ class Process_Service
                 break;
             }
 
+            $post_id = $oldest_post['id'];
+
+            // Log the attempt
+            $this->logging_service->insert_log('process', 'Attempting to Republish Post ' . $post_id);
+
             // Convert time (hh:mm) to epoch timestamp for today
             $timestamp = $this->convert_time_to_timestamp($time);
 
             // Republish the post
-            $result = $this->republish_service->republish_post($oldest_post['id'], $timestamp);
+            $result = $this->republish_service->republish_post($post_id, $timestamp);
 
             if (is_wp_error($result)) {
-                $errors[] = "Failed to republish post ID " . $oldest_post['id'] . ": " . $result->get_error_message();
+                // Log the failure
+                $this->logging_service->insert_log('error', 'Failed to Republish Post ' . $post_id);
+                $errors[] = "Failed to republish post ID " . $post_id . ": " . $result->get_error_message();
                 continue;
             }
+
+            // Log the success
+            $this->logging_service->insert_log('republish', $post_id);
 
             $republished_posts[] = $result;
         }
