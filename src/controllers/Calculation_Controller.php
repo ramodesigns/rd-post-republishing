@@ -238,7 +238,8 @@ class Calculation_Controller
             if ($result['success']) {
                 return new WP_REST_Response(array(
                     'success' => true,
-                    'times' => $result['times'],
+                    'previous_times' => $result['previous_times'],
+                    'future_times' => $result['future_times'],
                     'timestamp' => current_time('mysql')
                 ), 200);
             }
