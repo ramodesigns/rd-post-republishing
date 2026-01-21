@@ -33,6 +33,13 @@ class Process_Service
     private $calculation_service;
 
     /**
+     * Republish service instance
+     *
+     * @var Republish_Service
+     */
+    private $republish_service;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -40,6 +47,7 @@ class Process_Service
         $this->preferences_service = new Preferences_Service();
         $this->logging_service = new Logging_Service();
         $this->calculation_service = new Calculation_Service();
+        $this->republish_service = new Republish_Service();
     }
 
     /**
@@ -102,18 +110,60 @@ class Process_Service
             );
         }
 
-        // Calculate how many posts we can still republish today
-        $posts_to_republish = $posts_per_day - $republish_count_today;
+        // Republish posts for each time due
+        $republished_posts = array();
 
-        // Temporary response for testing
+        foreach ($times_due as $time) {
+            // Find the oldest post
+            $oldest_post = $this->republish_service->find_oldest_post();
+
+            if ($oldest_post === null) {
+                $errors[] = "No posts available to republish";
+                break;
+            }
+
+            // Convert time (hh:mm) to epoch timestamp for today
+            $timestamp = $this->convert_time_to_timestamp($time);
+
+            // Republish the post
+            $result = $this->republish_service->republish_post($oldest_post['id'], $timestamp);
+
+            if (is_wp_error($result)) {
+                $errors[] = "Failed to republish post ID " . $oldest_post['id'] . ": " . $result->get_error_message();
+                continue;
+            }
+
+            $republished_posts[] = $result;
+        }
+
         return array(
-            'success' => true,
+            'success' => empty($errors),
             'errors' => $errors,
-            'posts_per_day' => $posts_per_day,
-            'republish_count_today' => $republish_count_today,
-            'posts_to_republish' => $posts_to_republish,
-            'times_due' => $times_due
+            'republished_posts' => $republished_posts
         );
+    }
+
+    /**
+     * Convert a time string (hh:mm) to epoch timestamp for today
+     *
+     * @param string $time The time in hh:mm format
+     * @return int The epoch timestamp
+     */
+    private function convert_time_to_timestamp($time)
+    {
+        $parts = explode(':', $time);
+        $hours = (int) $parts[0];
+        $minutes = (int) $parts[1];
+
+        // Get today's date components
+        $year = (int) current_time('Y');
+        $month = (int) current_time('m');
+        $day = (int) current_time('d');
+
+        // Create timestamp for today at the specified time
+        $local_timestamp = mktime($hours, $minutes, 0, $month, $day, $year);
+
+        return $local_timestamp;
     }
 
     /**
