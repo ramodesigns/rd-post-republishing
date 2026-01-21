@@ -69,6 +69,21 @@ class Calculation_Controller
             'callback' => array($this, 'handle_operations_request'),
             'permission_callback' => '__return_true'
         ));
+
+        register_rest_route($this->namespace, '/posttimes', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_posttimes_request'),
+            //'permission_callback' => array($this, 'check_authentication'),
+            'permission_callback' => '__return_true',
+            'args' => $this->get_posttimes_endpoint_args()
+        ));
+
+        register_rest_route($this->namespace, '/posttimespublic', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_posttimes_request'),
+            'permission_callback' => '__return_true',
+            'args' => $this->get_posttimes_endpoint_args()
+        ));
     }
 
     /**
@@ -91,6 +106,22 @@ class Calculation_Controller
                 'items' => array(
                     'type' => 'number'
                 )
+            )
+        );
+    }
+
+    /**
+     * Get endpoint arguments for posttimes validation
+     *
+     * @return array
+     */
+    private function get_posttimes_endpoint_args()
+    {
+        return array(
+            'date' => array(
+                'required' => true,
+                'type' => 'string',
+                'description' => 'The date in dd-mm-yyyy format'
             )
         );
     }
@@ -185,6 +216,42 @@ class Calculation_Controller
         } catch (Exception $e) {
             return new WP_Error(
                 'operations_error',
+                __('An error occurred: ') . $e->getMessage(),
+                array('status' => 500)
+            );
+        }
+    }
+
+    /**
+     * Handle posttimes request
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response|WP_Error
+     */
+    public function handle_posttimes_request($request)
+    {
+        try {
+            $date = $request->get_param('date');
+
+            $result = $this->calculation_service->get_post_times($date);
+
+            if ($result['success']) {
+                return new WP_REST_Response(array(
+                    'success' => true,
+                    'times' => $result['times'],
+                    'timestamp' => current_time('mysql')
+                ), 200);
+            }
+
+            return new WP_REST_Response(array(
+                'success' => false,
+                'errors' => $result['errors'],
+                'timestamp' => current_time('mysql')
+            ), 400);
+
+        } catch (Exception $e) {
+            return new WP_Error(
+                'posttimes_error',
                 __('An error occurred: ') . $e->getMessage(),
                 array('status' => 500)
             );
