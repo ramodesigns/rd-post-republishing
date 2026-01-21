@@ -88,20 +88,19 @@ class Process_Service
 
         $previous_times = $post_times_result['previous_times'];
 
-        // Check if the next time slot exists in previous_times
-        // The next time slot index is equal to the number of posts already republished
+        // Get all times that are due for republishing
+        // These are all previous_times from the next index onwards
         $next_time_index = $republish_count_today;
+        $times_due = array_slice($previous_times, $next_time_index);
 
-        if (!isset($previous_times[$next_time_index])) {
-            // The next time slot is still in the future, nothing to do
+        if (empty($times_due)) {
+            // No times are due yet - either all caught up or next time is still in the future
             return array(
                 'success' => true,
                 'errors' => $errors,
-                'message' => 'Next post time has not been reached yet'
+                'message' => 'No posts are due for republishing yet'
             );
         }
-
-        $next_post_time = $previous_times[$next_time_index];
 
         // Calculate how many posts we can still republish today
         $posts_to_republish = $posts_per_day - $republish_count_today;
@@ -113,7 +112,7 @@ class Process_Service
             'posts_per_day' => $posts_per_day,
             'republish_count_today' => $republish_count_today,
             'posts_to_republish' => $posts_to_republish,
-            'next_post_time' => $next_post_time
+            'times_due' => $times_due
         );
     }
 
