@@ -26,12 +26,20 @@ class Process_Service
     private $logging_service;
 
     /**
+     * Calculation service instance
+     *
+     * @var Calculation_Service
+     */
+    private $calculation_service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
         $this->preferences_service = new Preferences_Service();
         $this->logging_service = new Logging_Service();
+        $this->calculation_service = new Calculation_Service();
     }
 
     /**
@@ -65,6 +73,36 @@ class Process_Service
             );
         }
 
+        // Get today's date in dd-mm-yyyy format
+        $today = current_time('d-m-Y');
+
+        // Get post times for today
+        $post_times_result = $this->calculation_service->get_post_times($today);
+
+        if (!$post_times_result['success']) {
+            return array(
+                'success' => false,
+                'errors' => $post_times_result['errors']
+            );
+        }
+
+        $previous_times = $post_times_result['previous_times'];
+
+        // Check if the next time slot exists in previous_times
+        // The next time slot index is equal to the number of posts already republished
+        $next_time_index = $republish_count_today;
+
+        if (!isset($previous_times[$next_time_index])) {
+            // The next time slot is still in the future, nothing to do
+            return array(
+                'success' => true,
+                'errors' => $errors,
+                'message' => 'Next post time has not been reached yet'
+            );
+        }
+
+        $next_post_time = $previous_times[$next_time_index];
+
         // Calculate how many posts we can still republish today
         $posts_to_republish = $posts_per_day - $republish_count_today;
 
@@ -74,7 +112,8 @@ class Process_Service
             'errors' => $errors,
             'posts_per_day' => $posts_per_day,
             'republish_count_today' => $republish_count_today,
-            'posts_to_republish' => $posts_to_republish
+            'posts_to_republish' => $posts_to_republish,
+            'next_post_time' => $next_post_time
         );
     }
 
