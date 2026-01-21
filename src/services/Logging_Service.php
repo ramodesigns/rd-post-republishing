@@ -101,13 +101,17 @@ class Logging_Service
 
         $table_name = Init_Setup::get_log_table_name();
 
+        // Generate timestamp with milliseconds
+        $timestamp = $this->get_timestamp_with_milliseconds();
+
         $result = $wpdb->insert(
             $table_name,
             array(
+                'timestamp' => $timestamp,
                 'type' => $type,
                 'entry' => (string) $entry
             ),
-            array('%s', '%s')
+            array('%s', '%s', '%s')
         );
 
         if ($result === false) {
@@ -145,6 +149,22 @@ class Logging_Service
         );
 
         return intval($count);
+    }
+
+    /**
+     * Get current timestamp with milliseconds
+     *
+     * @return string Timestamp in Y-m-d H:i:s.v format
+     */
+    private function get_timestamp_with_milliseconds()
+    {
+        $microtime = microtime(true);
+        $milliseconds = sprintf('%03d', ($microtime - floor($microtime)) * 1000);
+        $datetime = new DateTime();
+        $datetime->setTimestamp((int) $microtime);
+        $datetime->setTimezone(wp_timezone());
+
+        return $datetime->format('Y-m-d H:i:s') . '.' . $milliseconds;
     }
 
     /**
