@@ -106,6 +106,77 @@ class Calculation_Service
     }
 
     /**
+     * Get post times for a given date
+     *
+     * @param string $date The date in dd-mm-yyyy format
+     * @return array Result with 'success' and 'times' array or 'errors' array
+     */
+    public function get_post_times($date)
+    {
+        $errors = $this->validate_date($date);
+
+        if (!empty($errors)) {
+            return array(
+                'success' => false,
+                'errors' => $errors
+            );
+        }
+
+        // Placeholder times array - actual implementation to be added later
+        $times = array(
+            '09:00',
+            '12:00',
+            '15:00',
+            '18:00'
+        );
+
+        return array(
+            'success' => true,
+            'times' => $times
+        );
+    }
+
+    /**
+     * Validate date input
+     *
+     * @param mixed $date The date to validate
+     * @return array Array of error messages (empty if valid)
+     */
+    private function validate_date($date)
+    {
+        $errors = array();
+
+        if ($date === null || $date === '') {
+            $errors[] = 'date is missing';
+            return $errors;
+        }
+
+        if (!is_string($date)) {
+            $errors[] = 'date is invalid';
+            return $errors;
+        }
+
+        // Check format dd-mm-yyyy
+        if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $date)) {
+            $errors[] = 'date is invalid';
+            return $errors;
+        }
+
+        // Parse and validate the date components
+        $parts = explode('-', $date);
+        $day = (int) $parts[0];
+        $month = (int) $parts[1];
+        $year = (int) $parts[2];
+
+        if (!checkdate($month, $day, $year)) {
+            $errors[] = 'date is invalid';
+            return $errors;
+        }
+
+        return $errors;
+    }
+
+    /**
      * Validate calculation inputs
      *
      * @param mixed $operation The operation to validate
