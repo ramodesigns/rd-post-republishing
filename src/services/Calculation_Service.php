@@ -17,11 +17,18 @@ class Calculation_Service
     const MAX_INPUT_LENGTH = 500;
 
     /**
+     * Preferences service instance
+     *
+     * @var Preferences_Service
+     */
+    private $preferences_service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
-
+        $this->preferences_service = new Preferences_Service();
     }
 
     /**
@@ -122,6 +129,11 @@ class Calculation_Service
             );
         }
 
+        // Fetch preference values
+        $publish_start_time = $this->get_preference_value('publish_start_time');
+        $publish_end_time = $this->get_preference_value('publish_end_time');
+        $posts_per_day = $this->get_preference_value('posts_per_day');
+
         // Placeholder times array - actual implementation to be added later
         $times = array(
             '09:00',
@@ -134,6 +146,18 @@ class Calculation_Service
             'success' => true,
             'times' => $times
         );
+    }
+
+    /**
+     * Get a preference value by key
+     *
+     * @param string $key The preference key
+     * @return string|null The preference value or null if not found
+     */
+    private function get_preference_value($key)
+    {
+        $preference = $this->preferences_service->get_preference_by_key($key);
+        return $preference !== null ? $preference['value'] : null;
     }
 
     /**
