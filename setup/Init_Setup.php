@@ -104,7 +104,7 @@ class Init_Setup
 
         $sql = "CREATE TABLE $table_name (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            timestamp datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            timestamp datetime(3) NOT NULL,
             type varchar(50) NOT NULL,
             entry varchar(500) NOT NULL,
             PRIMARY KEY (id)
