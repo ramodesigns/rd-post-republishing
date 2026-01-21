@@ -26,12 +26,28 @@ class Process_Service
     private $logging_service;
 
     /**
+     * Calculation service instance
+     *
+     * @var Calculation_Service
+     */
+    private $calculation_service;
+
+    /**
+     * Republish service instance
+     *
+     * @var Republish_Service
+     */
+    private $republish_service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
         $this->preferences_service = new Preferences_Service();
         $this->logging_service = new Logging_Service();
+        $this->calculation_service = new Calculation_Service();
+        $this->republish_service = new Republish_Service();
     }
 
     /**
@@ -65,17 +81,99 @@ class Process_Service
             );
         }
 
-        // Calculate how many posts we can still republish today
-        $posts_to_republish = $posts_per_day - $republish_count_today;
+        // Get today's date in dd-mm-yyyy format
+        $today = current_time('d-m-Y');
 
-        // Temporary response for testing
+        // Get post times for today
+        $post_times_result = $this->calculation_service->get_post_times($today);
+
+        if (!$post_times_result['success']) {
+            return array(
+                'success' => false,
+                'errors' => $post_times_result['errors']
+            );
+        }
+
+        $previous_times = $post_times_result['previous_times'];
+
+        // Get all times that are due for republishing
+        // These are all previous_times from the next index onwards
+        $next_time_index = $republish_count_today;
+        $times_due = array_slice($previous_times, $next_time_index);
+
+        if (empty($times_due)) {
+            // No times are due yet - either all caught up or next time is still in the future
+            return array(
+                'success' => true,
+                'errors' => $errors,
+                'message' => 'No posts are due for republishing yet'
+            );
+        }
+
+        // Republish posts for each time due
+        $republished_posts = array();
+
+        foreach ($times_due as $time) {
+            // Find the oldest post
+            $oldest_post = $this->republish_service->find_oldest_post();
+
+            if ($oldest_post === null) {
+                $errors[] = "No posts available to republish";
+                break;
+            }
+
+            $post_id = $oldest_post['id'];
+
+            // Log the attempt
+            $this->logging_service->insert_log('process', 'Attempting to Republish Post ' . $post_id);
+
+            // Convert time (hh:mm) to epoch timestamp for today
+            $timestamp = $this->convert_time_to_timestamp($time);
+
+            // Republish the post
+            $result = $this->republish_service->republish_post($post_id, $timestamp);
+
+            if (is_wp_error($result)) {
+                // Log the failure
+                $this->logging_service->insert_log('error', 'Failed to Republish Post ' . $post_id);
+                $errors[] = "Failed to republish post ID " . $post_id . ": " . $result->get_error_message();
+                continue;
+            }
+
+            // Log the success
+            $this->logging_service->insert_log('republish', $post_id);
+
+            $republished_posts[] = $result;
+        }
+
         return array(
-            'success' => true,
+            'success' => empty($errors),
             'errors' => $errors,
-            'posts_per_day' => $posts_per_day,
-            'republish_count_today' => $republish_count_today,
-            'posts_to_republish' => $posts_to_republish
+            'republished_posts' => $republished_posts
         );
+    }
+
+    /**
+     * Convert a time string (hh:mm) to epoch timestamp for today
+     *
+     * @param string $time The time in hh:mm format
+     * @return int The epoch timestamp
+     */
+    private function convert_time_to_timestamp($time)
+    {
+        $parts = explode(':', $time);
+        $hours = (int) $parts[0];
+        $minutes = (int) $parts[1];
+
+        // Get today's date components
+        $year = (int) current_time('Y');
+        $month = (int) current_time('m');
+        $day = (int) current_time('d');
+
+        // Create timestamp for today at the specified time
+        $local_timestamp = mktime($hours, $minutes, 0, $month, $day, $year);
+
+        return $local_timestamp;
     }
 
     /**
