@@ -17,11 +17,18 @@ class Calculation_Service
     const MAX_INPUT_LENGTH = 500;
 
     /**
+     * Preferences service instance
+     *
+     * @var Preferences_Service
+     */
+    private $preferences_service;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
-
+        $this->preferences_service = new Preferences_Service();
     }
 
     /**
@@ -122,18 +129,73 @@ class Calculation_Service
             );
         }
 
-        // Placeholder times array - actual implementation to be added later
-        $times = array(
-            '09:00',
-            '12:00',
-            '15:00',
-            '18:00'
-        );
+        // Fetch preference values
+        $publish_start_time = (int) $this->get_preference_value('publish_start_time');
+        $publish_end_time = (int) $this->get_preference_value('publish_end_time');
+        $posts_per_day = (int) $this->get_preference_value('posts_per_day');
+
+        // Generate deterministic times based on the date
+        $times = $this->generate_post_times($date, $publish_start_time, $publish_end_time, $posts_per_day);
 
         return array(
             'success' => true,
             'times' => $times
         );
+    }
+
+    /**
+     * Generate deterministic post times based on the date
+     *
+     * @param string $date The date string used as seed
+     * @param int $start_hour The start hour (e.g., 9 for 9am)
+     * @param int $end_hour The end hour (e.g., 17 for 5pm)
+     * @param int $posts_per_day Number of times to generate
+     * @return array Array of times in hh:mm format
+     */
+    private function generate_post_times($date, $start_hour, $end_hour, $posts_per_day)
+    {
+        $times = array();
+
+        // Convert hours to minutes from midnight
+        $start_minutes = $start_hour * 60;
+        $end_minutes = $end_hour * 60;
+        $total_minutes = $end_minutes - $start_minutes;
+
+        // Create a seed from the date string
+        $seed = crc32($date);
+
+        // Calculate segment size for each post
+        $segment_size = $total_minutes / $posts_per_day;
+
+        for ($i = 0; $i < $posts_per_day; $i++) {
+            // Generate a deterministic offset within this segment using the seed and index
+            $segment_seed = crc32($date . '_' . $i);
+            $offset_within_segment = abs($segment_seed) % (int) $segment_size;
+
+            // Calculate the time in minutes from midnight
+            $time_in_minutes = $start_minutes + ($i * $segment_size) + $offset_within_segment;
+
+            // Convert to hours and minutes
+            $hours = (int) floor($time_in_minutes / 60);
+            $minutes = (int) ($time_in_minutes % 60);
+
+            // Format as hh:mm
+            $times[] = sprintf('%02d:%02d', $hours, $minutes);
+        }
+
+        return $times;
+    }
+
+    /**
+     * Get a preference value by key
+     *
+     * @param string $key The preference key
+     * @return string|null The preference value or null if not found
+     */
+    private function get_preference_value($key)
+    {
+        $preference = $this->preferences_service->get_preference_by_key($key);
+        return $preference !== null ? $preference['value'] : null;
     }
 
     /**
