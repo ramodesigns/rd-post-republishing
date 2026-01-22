@@ -5,6 +5,7 @@
  * Registers REST API endpoints:
  * - postmetadata/v1/preferences/update (protected)
  * - postmetadata/v1/preferences/retrieve (protected)
+ * - postmetadata/v1/preferences/updatepublic (public)
  * - postmetadata/v1/preferences/retrievepublic (public)
  */
 
@@ -41,12 +42,11 @@ class Preferences_Controller
      */
     public function register_rest_routes()
     {
-        // Protected endpoints requiring application password authentication
+        // Protected endpoints requiring authentication
         register_rest_route($this->namespace, '/update', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_update_preferences_request'),
-            //'permission_callback' => array($this, 'check_authentication'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_authentication'),
             'args' => $this->get_endpoint_args()
         ));
 
@@ -56,7 +56,14 @@ class Preferences_Controller
             'permission_callback' => array($this, 'check_authentication')
         ));
 
-        // Public endpoint
+        // Public endpoints
+        register_rest_route($this->namespace, '/updatepublic', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_update_preferences_request'),
+            'permission_callback' => '__return_true',
+            'args' => $this->get_endpoint_args()
+        ));
+
         register_rest_route($this->namespace, '/retrievepublic', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_retrieve_preferences_request'),
