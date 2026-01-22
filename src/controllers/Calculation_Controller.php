@@ -73,8 +73,7 @@ class Calculation_Controller
         register_rest_route($this->namespace, '/posttimes', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_posttimes_request'),
-            //'permission_callback' => array($this, 'check_authentication'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_authentication'),
             'args' => $this->get_posttimes_endpoint_args()
         ));
 

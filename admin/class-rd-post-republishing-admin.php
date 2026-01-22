@@ -217,8 +217,9 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-settings',
 				'rdPrSettings',
 				array(
-					'restUrl'  => esc_url_raw( rest_url( 'postmetadata/v1/preferences' ) ),
-					'nonce'    => wp_create_nonce( 'wp_rest' ),
+					'restUrl'         => esc_url_raw( rest_url( 'postmetadata/v1/preferences' ) ),
+					'calculationUrl'  => esc_url_raw( rest_url( 'postmetadata/v1/calculation' ) ),
+					'nonce'           => wp_create_nonce( 'wp_rest' ),
 				)
 			);
 		}

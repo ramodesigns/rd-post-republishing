@@ -324,6 +324,104 @@
 	line-height: 1.5;
 }
 
+/* Posting Calendar Panel */
+.rd-pr-calendar-panel {
+	margin-top: 24px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.rd-pr-calendar-panel h2 {
+	margin: 0;
+	padding: 16px 24px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.rd-pr-calendar-content {
+	padding: 24px;
+}
+
+.rd-pr-calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 12px;
+}
+
+.rd-pr-calendar-day {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px;
+	min-height: 120px;
+}
+
+.rd-pr-calendar-today {
+	background: #f0f6fc;
+	border-color: #2271b1;
+}
+
+.rd-pr-calendar-day-header {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+	margin-bottom: 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.rd-pr-calendar-today .rd-pr-calendar-day-header {
+	color: #2271b1;
+	border-bottom-color: #2271b1;
+}
+
+.rd-pr-calendar-times {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.rd-pr-calendar-time {
+	display: inline-block;
+	padding: 4px 8px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #1d2327;
+	text-align: center;
+}
+
+.rd-pr-calendar-today .rd-pr-calendar-time {
+	background: #e7f3ff;
+	border-color: #72aee6;
+	color: #135e96;
+}
+
+.rd-pr-calendar-no-times {
+	font-size: 12px;
+	color: #8c8f94;
+	font-style: italic;
+}
+
+.rd-pr-calendar-loading,
+.rd-pr-calendar-error {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 40px 20px;
+	color: #646970;
+	font-size: 14px;
+}
+
+.rd-pr-calendar-error {
+	color: #d63638;
+}
+
 /* Responsive Styles */
 @media screen and (max-width: 782px) {
 	.rd-pr-settings-wrap {
@@ -383,5 +481,40 @@
 
 	.rd-pr-field-description {
 		font-size: 12px;
+	}
+}
+
+/* Calendar Responsive Styles */
+@media screen and (max-width: 1200px) {
+	.rd-pr-calendar-grid {
+		grid-template-columns: repeat(4, 1fr);
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.rd-pr-calendar-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.rd-pr-calendar-panel h2 {
+		padding: 12px 16px;
+	}
+
+	.rd-pr-calendar-content {
+		padding: 16px;
+	}
+
+	.rd-pr-calendar-day {
+		min-height: 100px;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.rd-pr-calendar-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.rd-pr-calendar-day {
+		min-height: auto;
 	}
 }
