@@ -311,6 +311,19 @@
 	line-height: 1.5;
 }
 
+/* Success Message */
+.rd-pr-success-message {
+	background-color: #edfaef;
+	border: 1px solid #00a32a;
+	border-left-width: 4px;
+	border-radius: 4px;
+	padding: 12px 16px;
+	margin-bottom: 16px;
+	color: #00a32a;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
 /* Responsive Styles */
 @media screen and (max-width: 782px) {
 	.rd-pr-settings-wrap {
