@@ -41,6 +41,15 @@ class Rd_Post_Republishing_Admin {
 	private $version;
 
 	/**
+	 * The current admin page hook suffix.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      array    $page_hooks    Array of page hook suffixes.
+	 */
+	private $page_hooks = array();
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -55,25 +64,125 @@ class Rd_Post_Republishing_Admin {
 	}
 
 	/**
+	 * Register the admin menu pages.
+	 *
+	 * @since    1.0.0
+	 */
+	public function add_admin_menu() {
+
+		// Add main menu page under Comments (position 26 is after Comments which is 25)
+		$this->page_hooks['settings'] = add_menu_page(
+			__( 'Post Republisher', 'rd-post-republishing' ),
+			__( 'Post Republisher', 'rd-post-republishing' ),
+			'manage_options',
+			'rd-post-republisher',
+			array( $this, 'render_settings_page' ),
+			'dashicons-update',
+			26
+		);
+
+		// Add Settings submenu (this replaces the default menu item)
+		$this->page_hooks['settings'] = add_submenu_page(
+			'rd-post-republisher',
+			__( 'Settings', 'rd-post-republishing' ),
+			__( 'Settings', 'rd-post-republishing' ),
+			'manage_options',
+			'rd-post-republisher',
+			array( $this, 'render_settings_page' )
+		);
+
+		// Add Configure submenu
+		$this->page_hooks['configure'] = add_submenu_page(
+			'rd-post-republisher',
+			__( 'Configure', 'rd-post-republishing' ),
+			__( 'Configure', 'rd-post-republishing' ),
+			'manage_options',
+			'rd-post-republisher-configure',
+			array( $this, 'render_configure_page' )
+		);
+
+		// Add Logs submenu
+		$this->page_hooks['logs'] = add_submenu_page(
+			'rd-post-republisher',
+			__( 'Logs', 'rd-post-republishing' ),
+			__( 'Logs', 'rd-post-republishing' ),
+			'manage_options',
+			'rd-post-republisher-logs',
+			array( $this, 'render_logs_page' )
+		);
+
+	}
+
+	/**
+	 * Render the Settings page.
+	 *
+	 * @since    1.0.0
+	 */
+	public function render_settings_page() {
+		require_once plugin_dir_path( __FILE__ ) . 'partials/rd-pr-settings-display.php';
+	}
+
+	/**
+	 * Render the Configure page.
+	 *
+	 * @since    1.0.0
+	 */
+	public function render_configure_page() {
+		require_once plugin_dir_path( __FILE__ ) . 'partials/rd-pr-configure-display.php';
+	}
+
+	/**
+	 * Render the Logs page.
+	 *
+	 * @since    1.0.0
+	 */
+	public function render_logs_page() {
+		require_once plugin_dir_path( __FILE__ ) . 'partials/rd-pr-logs-display.php';
+	}
+
+	/**
 	 * Register the stylesheets for the admin area.
 	 *
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Rd_Post_Republishing_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Rd_Post_Republishing_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+		$screen = get_current_screen();
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/rd-post-republishing-admin.css', array(), $this->version, 'all' );
+		if ( ! $screen ) {
+			return;
+		}
+
+		// Enqueue page-specific styles
+		if ( $screen->id === 'toplevel_page_rd-post-republisher' ) {
+			wp_enqueue_style(
+				'rd-pr-settings',
+				plugin_dir_url( __FILE__ ) . 'css/rd-pr-settings.css',
+				array(),
+				$this->version,
+				'all'
+			);
+		}
+
+		if ( $screen->id === 'post-republisher_page_rd-post-republisher-configure' ) {
+			wp_enqueue_style(
+				'rd-pr-configure',
+				plugin_dir_url( __FILE__ ) . 'css/rd-pr-configure.css',
+				array(),
+				$this->version,
+				'all'
+			);
+		}
+
+		if ( $screen->id === 'post-republisher_page_rd-post-republisher-logs' ) {
+			wp_enqueue_style(
+				'rd-pr-logs',
+				plugin_dir_url( __FILE__ ) . 'css/rd-pr-logs.css',
+				array(),
+				$this->version,
+				'all'
+			);
+		}
 
 	}
 
@@ -84,19 +193,42 @@ class Rd_Post_Republishing_Admin {
 	 */
 	public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Rd_Post_Republishing_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Rd_Post_Republishing_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+		$screen = get_current_screen();
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/rd-post-republishing-admin.js', array( 'jquery' ), $this->version, false );
+		if ( ! $screen ) {
+			return;
+		}
+
+		// Enqueue page-specific scripts
+		if ( $screen->id === 'toplevel_page_rd-post-republisher' ) {
+			wp_enqueue_script(
+				'rd-pr-settings',
+				plugin_dir_url( __FILE__ ) . 'js/rd-pr-settings.js',
+				array( 'jquery' ),
+				$this->version,
+				true
+			);
+		}
+
+		if ( $screen->id === 'post-republisher_page_rd-post-republisher-configure' ) {
+			wp_enqueue_script(
+				'rd-pr-configure',
+				plugin_dir_url( __FILE__ ) . 'js/rd-pr-configure.js',
+				array( 'jquery' ),
+				$this->version,
+				true
+			);
+		}
+
+		if ( $screen->id === 'post-republisher_page_rd-post-republisher-logs' ) {
+			wp_enqueue_script(
+				'rd-pr-logs',
+				plugin_dir_url( __FILE__ ) . 'js/rd-pr-logs.js',
+				array( 'jquery' ),
+				$this->version,
+				true
+			);
+		}
 
 	}
 
