@@ -159,7 +159,8 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-settings',
 				plugin_dir_url( __FILE__ ) . 'css/rd-pr-settings.css',
 				array(),
-				$this->version,
+				// $this->version,
+				filemtime( plugin_dir_path( __FILE__ ) . 'css/rd-pr-settings.css' ),
 				'all'
 			);
 		}
@@ -169,7 +170,8 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-configure',
 				plugin_dir_url( __FILE__ ) . 'css/rd-pr-configure.css',
 				array(),
-				$this->version,
+				// $this->version,
+				filemtime( plugin_dir_path( __FILE__ ) . 'css/rd-pr-configure.css' ),
 				'all'
 			);
 		}
@@ -179,7 +181,8 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-logs',
 				plugin_dir_url( __FILE__ ) . 'css/rd-pr-logs.css',
 				array(),
-				$this->version,
+				// $this->version,
+				filemtime( plugin_dir_path( __FILE__ ) . 'css/rd-pr-logs.css' ),
 				'all'
 			);
 		}
@@ -205,7 +208,8 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-settings',
 				plugin_dir_url( __FILE__ ) . 'js/rd-pr-settings.js',
 				array( 'jquery' ),
-				$this->version,
+				// $this->version,
+				filemtime( plugin_dir_path( __FILE__ ) . 'js/rd-pr-settings.js' ),
 				true
 			);
 		}
@@ -215,7 +219,8 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-configure',
 				plugin_dir_url( __FILE__ ) . 'js/rd-pr-configure.js',
 				array( 'jquery' ),
-				$this->version,
+				// $this->version,
+				filemtime( plugin_dir_path( __FILE__ ) . 'js/rd-pr-configure.js' ),
 				true
 			);
 		}
@@ -225,7 +230,8 @@ class Rd_Post_Republishing_Admin {
 				'rd-pr-logs',
 				plugin_dir_url( __FILE__ ) . 'js/rd-pr-logs.js',
 				array( 'jquery' ),
-				$this->version,
+				// $this->version,
+				filemtime( plugin_dir_path( __FILE__ ) . 'js/rd-pr-logs.js' ),
 				true
 			);
 		}
