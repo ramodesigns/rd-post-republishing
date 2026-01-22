@@ -276,12 +276,13 @@
 		}
 
 		/**
-		 * Format a Date object for display (e.g., "Thu 23 Jan")
+		 * Format a Date object for display (e.g., "23/01/26")
 		 */
 		function formatDateForDisplay(date) {
-			var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-			var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-			return days[date.getDay()] + ' ' + date.getDate() + ' ' + months[date.getMonth()];
+			var day = String(date.getDate()).padStart(2, '0');
+			var month = String(date.getMonth() + 1).padStart(2, '0');
+			var year = String(date.getFullYear()).slice(-2);
+			return day + '/' + month + '/' + year;
 		}
 
 		/**
