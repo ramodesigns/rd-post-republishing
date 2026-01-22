@@ -212,6 +212,15 @@ class Rd_Post_Republishing_Admin {
 				filemtime( plugin_dir_path( __FILE__ ) . 'js/rd-pr-settings.js' ),
 				true
 			);
+
+			wp_localize_script(
+				'rd-pr-settings',
+				'rdPrSettings',
+				array(
+					'restUrl'  => esc_url_raw( rest_url( 'postmetadata/v1/preferences' ) ),
+					'nonce'    => wp_create_nonce( 'wp_rest' ),
+				)
+			);
 		}
 
 		if ( $screen->id === 'post-republisher_page_rd-post-republisher-configure' ) {
