@@ -160,9 +160,91 @@
 		// Fetch preferences from API on page load
 		fetchPreferences();
 
+		/**
+		 * Save preferences to the API
+		 */
+		function savePreferences() {
+			var $saveButton = $('#rd-pr-save-settings');
+			var originalText = $saveButton.text();
+
+			// Disable button and show saving state
+			$saveButton.prop('disabled', true).text('Saving...');
+
+			// Build preferences payload
+			var preferences = [
+				{
+					key: 'status',
+					value: $activeToggle.is(':checked') ? 'active' : 'inactive'
+				},
+				{
+					key: 'posts_per_day',
+					value: $slider.val()
+				},
+				{
+					key: 'publish_start_time',
+					value: $startTime.val()
+				},
+				{
+					key: 'publish_end_time',
+					value: $endTime.val()
+				}
+			];
+
+			$.ajax({
+				url: rdPrSettings.restUrl + '/update',
+				method: 'POST',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				contentType: 'application/json',
+				data: JSON.stringify({ preferences: preferences }),
+				success: function(response) {
+					if (response.success) {
+						showSuccessMessage('Settings saved successfully.');
+					} else {
+						showValidationError(response.message || 'Failed to save settings.');
+					}
+				},
+				error: function(xhr, status, error) {
+					var message = 'Failed to save settings.';
+					if (xhr.responseJSON && xhr.responseJSON.message) {
+						message = xhr.responseJSON.message;
+					}
+					showValidationError(message);
+				},
+				complete: function() {
+					// Re-enable button and restore text
+					$saveButton.prop('disabled', false).text(originalText);
+				}
+			});
+		}
+
+		/**
+		 * Show success message
+		 */
+		function showSuccessMessage(message) {
+			hideValidationError();
+			var $success = $('#rd-pr-success-message');
+
+			if ($success.length === 0) {
+				$success = $('<div id="rd-pr-success-message" class="rd-pr-success-message"></div>');
+				$submitGroup.before($success);
+			}
+
+			$success.text(message).show();
+
+			// Auto-hide after 3 seconds
+			setTimeout(function() {
+				$success.fadeOut();
+			}, 3000);
+		}
+
 		// Form submission
 		$form.on('submit', function(e) {
 			e.preventDefault();
+
+			// Hide any existing success message
+			$('#rd-pr-success-message').hide();
 
 			// Only validate time range if active
 			if ($activeToggle.is(':checked')) {
@@ -171,8 +253,8 @@
 				}
 			}
 
-			// Save functionality will be implemented later
-			console.log('Settings form submitted');
+			// Save preferences to API
+			savePreferences();
 		});
 
 	});
