@@ -201,6 +201,8 @@
 				success: function(response) {
 					if (response.success) {
 						showSuccessMessage('Settings saved successfully.');
+						// Refresh the posting calendar with new settings
+						loadPostingCalendar();
 					} else {
 						showValidationError(response.message || 'Failed to save settings.');
 					}
@@ -256,6 +258,151 @@
 			// Save preferences to API
 			savePreferences();
 		});
+
+		// =====================================================
+		// Posting Calendar functionality
+		// =====================================================
+
+		var $calendarGrid = $('#rd-pr-calendar-grid');
+
+		/**
+		 * Format a Date object to dd-mm-yyyy string
+		 */
+		function formatDateToDDMMYYYY(date) {
+			var day = String(date.getDate()).padStart(2, '0');
+			var month = String(date.getMonth() + 1).padStart(2, '0');
+			var year = date.getFullYear();
+			return day + '-' + month + '-' + year;
+		}
+
+		/**
+		 * Format a Date object for display (e.g., "Thu 23 Jan")
+		 */
+		function formatDateForDisplay(date) {
+			var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+			var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+			return days[date.getDay()] + ' ' + date.getDate() + ' ' + months[date.getMonth()];
+		}
+
+		/**
+		 * Get an array of 7 dates starting from today
+		 */
+		function getNext7Days() {
+			var dates = [];
+			var today = new Date();
+
+			for (var i = 0; i < 7; i++) {
+				var date = new Date(today);
+				date.setDate(today.getDate() + i);
+				dates.push(date);
+			}
+
+			return dates;
+		}
+
+		/**
+		 * Fetch posttimes for a single date
+		 */
+		function fetchPosttimesForDate(date) {
+			return $.ajax({
+				url: rdPrSettings.calculationUrl + '/posttimes',
+				method: 'POST',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				contentType: 'application/json',
+				data: JSON.stringify({ date: formatDateToDDMMYYYY(date) })
+			});
+		}
+
+		/**
+		 * Render the calendar with the fetched times
+		 */
+		function renderCalendar(datesWithTimes) {
+			var html = '';
+
+			datesWithTimes.forEach(function(item, index) {
+				var isToday = index === 0;
+				var dayLabel = isToday ? 'Today' : formatDateForDisplay(item.date);
+				var allTimes = [];
+
+				// Combine previous_times and future_times
+				if (item.times && item.times.previous_times) {
+					allTimes = allTimes.concat(item.times.previous_times);
+				}
+				if (item.times && item.times.future_times) {
+					allTimes = allTimes.concat(item.times.future_times);
+				}
+
+				html += '<div class="rd-pr-calendar-day' + (isToday ? ' rd-pr-calendar-today' : '') + '">';
+				html += '<div class="rd-pr-calendar-day-header">' + dayLabel + '</div>';
+				html += '<div class="rd-pr-calendar-times">';
+
+				if (allTimes.length > 0) {
+					allTimes.forEach(function(time) {
+						html += '<span class="rd-pr-calendar-time">' + time + '</span>';
+					});
+				} else {
+					html += '<span class="rd-pr-calendar-no-times">No times scheduled</span>';
+				}
+
+				html += '</div>';
+				html += '</div>';
+			});
+
+			$calendarGrid.html(html);
+		}
+
+		/**
+		 * Show calendar loading state
+		 */
+		function showCalendarLoading() {
+			$calendarGrid.html('<div class="rd-pr-calendar-loading">Loading posting schedule...</div>');
+		}
+
+		/**
+		 * Show calendar error state
+		 */
+		function showCalendarError() {
+			$calendarGrid.html('<div class="rd-pr-calendar-error">Failed to load posting schedule.</div>');
+		}
+
+		/**
+		 * Fetch and display posttimes for all 7 days
+		 */
+		function loadPostingCalendar() {
+			showCalendarLoading();
+
+			var dates = getNext7Days();
+			var requests = dates.map(function(date) {
+				return fetchPosttimesForDate(date);
+			});
+
+			$.when.apply($, requests)
+				.done(function() {
+					var results = requests.length === 1 ? [arguments] : arguments;
+					var datesWithTimes = [];
+
+					dates.forEach(function(date, index) {
+						var response = results[index][0];
+						datesWithTimes.push({
+							date: date,
+							times: response.success ? {
+								previous_times: response.previous_times || [],
+								future_times: response.future_times || []
+							} : null
+						});
+					});
+
+					renderCalendar(datesWithTimes);
+				})
+				.fail(function() {
+					showCalendarError();
+				});
+		}
+
+		// Load posting calendar on page load
+		loadPostingCalendar();
 
 	});
 

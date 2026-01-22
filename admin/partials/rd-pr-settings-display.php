@@ -112,4 +112,17 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 
 		</form>
 	</div>
+
+	<!-- Posting Calendar Panel -->
+	<div class="rd-pr-calendar-panel">
+		<h2><?php esc_html_e( 'Posting Calendar', 'rd-post-republishing' ); ?></h2>
+		<div class="rd-pr-calendar-content">
+			<div id="rd-pr-calendar-grid" class="rd-pr-calendar-grid">
+				<!-- Calendar days will be populated via JavaScript -->
+				<div class="rd-pr-calendar-loading">
+					<?php esc_html_e( 'Loading posting schedule...', 'rd-post-republishing' ); ?>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
