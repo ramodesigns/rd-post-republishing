@@ -38,13 +38,29 @@
 				success: function(response) {
 					if (response.success && response.data) {
 						populateFormFields(response.data);
+					} else {
+						// Apply defaults if no data returned
+						populateFormFields([]);
 					}
 				},
 				error: function(xhr, status, error) {
 					console.error('Failed to fetch preferences:', error);
+					// Apply defaults on error
+					populateFormFields([]);
 				}
 			});
 		}
+
+		/**
+		 * Default preference values
+		 */
+		var defaults = {
+			status: 'active',
+			wp_cron: 'active',
+			posts_per_day: '1',
+			publish_start_time: '9',
+			publish_end_time: '17'
+		};
 
 		/**
 		 * Populate form fields with preferences data
@@ -56,31 +72,26 @@
 				prefLookup[pref.key] = pref.value;
 			});
 
-			// Set Active toggle
-			if (prefLookup.status !== undefined) {
-				$activeToggle.prop('checked', prefLookup.status === 'active');
-			}
+			// Set Active toggle (default: active)
+			var status = prefLookup.status !== undefined ? prefLookup.status : defaults.status;
+			$activeToggle.prop('checked', status === 'active');
 
-			// Set WP Cron toggle
-			if (prefLookup.wp_cron !== undefined) {
-				$wpCronToggle.prop('checked', prefLookup.wp_cron === 'active');
-			}
+			// Set WP Cron toggle (default: active)
+			var wpCron = prefLookup.wp_cron !== undefined ? prefLookup.wp_cron : defaults.wp_cron;
+			$wpCronToggle.prop('checked', wpCron === 'active');
 
-			// Set Posts Per Day
-			if (prefLookup.posts_per_day !== undefined) {
-				$slider.val(prefLookup.posts_per_day);
-				$sliderValue.text(prefLookup.posts_per_day);
-			}
+			// Set Posts Per Day (default: 1)
+			var postsPerDay = prefLookup.posts_per_day !== undefined ? prefLookup.posts_per_day : defaults.posts_per_day;
+			$slider.val(postsPerDay);
+			$sliderValue.text(postsPerDay);
 
-			// Set Publish Start Time
-			if (prefLookup.publish_start_time !== undefined) {
-				$startTime.val(prefLookup.publish_start_time);
-			}
+			// Set Publish Start Time (default: 9)
+			var startTime = prefLookup.publish_start_time !== undefined ? prefLookup.publish_start_time : defaults.publish_start_time;
+			$startTime.val(startTime);
 
-			// Set Publish End Time
-			if (prefLookup.publish_end_time !== undefined) {
-				$endTime.val(prefLookup.publish_end_time);
-			}
+			// Set Publish End Time (default: 17)
+			var endTime = prefLookup.publish_end_time !== undefined ? prefLookup.publish_end_time : defaults.publish_end_time;
+			$endTime.val(endTime);
 
 			// Update field states after populating
 			toggleFieldsState();
