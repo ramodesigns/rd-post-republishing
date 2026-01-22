@@ -1,0 +1,14 @@
+/**
+ * Settings page styles.
+ *
+ * @package    Rd_Post_Republishing
+ * @subpackage Rd_Post_Republishing/admin/css
+ */
+
+.rd-pr-settings-wrap {
+	margin-top: 20px;
+}
+
+.rd-pr-settings-content {
+	margin-top: 20px;
+}
