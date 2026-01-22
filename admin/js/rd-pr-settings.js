@@ -11,6 +11,7 @@
 	$(document).ready(function() {
 
 		var $activeToggle = $('#rd-pr-active');
+		var $wpCronToggle = $('#rd-pr-wp-cron');
 		var $slider = $('#rd-pr-posts-per-day');
 		var $sliderValue = $('#rd-pr-posts-per-day-value');
 		var $startTime = $('#rd-pr-start-time');
@@ -19,6 +20,7 @@
 		var $submitGroup = $('.rd-pr-submit-group');
 
 		// Field groups for enabling/disabling
+		var $wpCronGroup = $wpCronToggle.closest('.rd-pr-field-group');
 		var $postsPerDayGroup = $slider.closest('.rd-pr-field-group');
 		var $startTimeGroup = $startTime.closest('.rd-pr-field-group');
 		var $endTimeGroup = $endTime.closest('.rd-pr-field-group');
@@ -59,6 +61,11 @@
 				$activeToggle.prop('checked', prefLookup.status === 'active');
 			}
 
+			// Set WP Cron toggle
+			if (prefLookup.wp_cron !== undefined) {
+				$wpCronToggle.prop('checked', prefLookup.wp_cron === 'active');
+			}
+
 			// Set Posts Per Day
 			if (prefLookup.posts_per_day !== undefined) {
 				$slider.val(prefLookup.posts_per_day);
@@ -85,11 +92,13 @@
 		function toggleFieldsState() {
 			var isActive = $activeToggle.is(':checked');
 
+			$wpCronToggle.prop('disabled', !isActive);
 			$slider.prop('disabled', !isActive);
 			$startTime.prop('disabled', !isActive);
 			$endTime.prop('disabled', !isActive);
 
 			// Toggle visual disabled state on field groups
+			$wpCronGroup.toggleClass('rd-pr-field-disabled', !isActive);
 			$postsPerDayGroup.toggleClass('rd-pr-field-disabled', !isActive);
 			$startTimeGroup.toggleClass('rd-pr-field-disabled', !isActive);
 			$endTimeGroup.toggleClass('rd-pr-field-disabled', !isActive);
@@ -175,6 +184,10 @@
 				{
 					key: 'status',
 					value: $activeToggle.is(':checked') ? 'active' : 'inactive'
+				},
+				{
+					key: 'wp_cron',
+					value: $wpCronToggle.is(':checked') ? 'active' : 'inactive'
 				},
 				{
 					key: 'posts_per_day',
@@ -369,9 +382,37 @@
 		}
 
 		/**
+		 * Render calendar with inactive state (no times)
+		 */
+		function renderInactiveCalendar() {
+			var dates = getNext7Days();
+			var html = '';
+
+			dates.forEach(function(date, index) {
+				var isToday = index === 0;
+				var dayLabel = isToday ? 'Today' : formatDateForDisplay(date);
+
+				html += '<div class="rd-pr-calendar-day rd-pr-calendar-inactive' + (isToday ? ' rd-pr-calendar-today' : '') + '">';
+				html += '<div class="rd-pr-calendar-day-header">' + dayLabel + '</div>';
+				html += '<div class="rd-pr-calendar-times">';
+				html += '<span class="rd-pr-calendar-no-times">Republishing disabled</span>';
+				html += '</div>';
+				html += '</div>';
+			});
+
+			$calendarGrid.html(html);
+		}
+
+		/**
 		 * Fetch and display posttimes for all 7 days
 		 */
 		function loadPostingCalendar() {
+			// If Active toggle is disabled, show inactive calendar
+			if (!$activeToggle.is(':checked')) {
+				renderInactiveCalendar();
+				return;
+			}
+
 			showCalendarLoading();
 
 			var dates = getNext7Days();

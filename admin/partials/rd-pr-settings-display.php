@@ -49,6 +49,22 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 				</div>
 			</div>
 
+			<!-- WP Cron Checkbox -->
+			<div class="rd-pr-field-group">
+				<label class="rd-pr-field-label" for="rd-pr-wp-cron">
+					<?php esc_html_e( 'WP Cron', 'rd-post-republishing' ); ?>
+				</label>
+				<div class="rd-pr-field-input">
+					<label class="rd-pr-toggle">
+						<input type="checkbox" id="rd-pr-wp-cron" name="wp_cron" value="1">
+						<span class="rd-pr-toggle-slider"></span>
+					</label>
+					<span class="rd-pr-field-description">
+						<?php esc_html_e( 'Disable WP Cron if you are using an alternative method to trigger the republishing process (e.g., server cron job or external scheduler).', 'rd-post-republishing' ); ?>
+					</span>
+				</div>
+			</div>
+
 			<!-- Posts Per Day Slider -->
 			<div class="rd-pr-field-group">
 				<label class="rd-pr-field-label" for="rd-pr-posts-per-day">
