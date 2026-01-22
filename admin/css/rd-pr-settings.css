@@ -422,6 +422,10 @@
 	color: #d63638;
 }
 
+.rd-pr-calendar-inactive {
+	opacity: 0.6;
+}
+
 /* Responsive Styles */
 @media screen and (max-width: 782px) {
 	.rd-pr-settings-wrap {

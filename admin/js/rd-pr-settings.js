@@ -11,6 +11,7 @@
 	$(document).ready(function() {
 
 		var $activeToggle = $('#rd-pr-active');
+		var $wpCronToggle = $('#rd-pr-wp-cron');
 		var $slider = $('#rd-pr-posts-per-day');
 		var $sliderValue = $('#rd-pr-posts-per-day-value');
 		var $startTime = $('#rd-pr-start-time');
@@ -19,6 +20,7 @@
 		var $submitGroup = $('.rd-pr-submit-group');
 
 		// Field groups for enabling/disabling
+		var $wpCronGroup = $wpCronToggle.closest('.rd-pr-field-group');
 		var $postsPerDayGroup = $slider.closest('.rd-pr-field-group');
 		var $startTimeGroup = $startTime.closest('.rd-pr-field-group');
 		var $endTimeGroup = $endTime.closest('.rd-pr-field-group');
@@ -36,13 +38,29 @@
 				success: function(response) {
 					if (response.success && response.data) {
 						populateFormFields(response.data);
+					} else {
+						// Apply defaults if no data returned
+						populateFormFields([]);
 					}
 				},
 				error: function(xhr, status, error) {
 					console.error('Failed to fetch preferences:', error);
+					// Apply defaults on error
+					populateFormFields([]);
 				}
 			});
 		}
+
+		/**
+		 * Default preference values
+		 */
+		var defaults = {
+			status: 'active',
+			wp_cron: 'active',
+			posts_per_day: '1',
+			publish_start_time: '9',
+			publish_end_time: '17'
+		};
 
 		/**
 		 * Populate form fields with preferences data
@@ -54,26 +72,26 @@
 				prefLookup[pref.key] = pref.value;
 			});
 
-			// Set Active toggle
-			if (prefLookup.status !== undefined) {
-				$activeToggle.prop('checked', prefLookup.status === 'active');
-			}
+			// Set Active toggle (default: active)
+			var status = prefLookup.status !== undefined ? prefLookup.status : defaults.status;
+			$activeToggle.prop('checked', status === 'active');
 
-			// Set Posts Per Day
-			if (prefLookup.posts_per_day !== undefined) {
-				$slider.val(prefLookup.posts_per_day);
-				$sliderValue.text(prefLookup.posts_per_day);
-			}
+			// Set WP Cron toggle (default: active)
+			var wpCron = prefLookup.wp_cron !== undefined ? prefLookup.wp_cron : defaults.wp_cron;
+			$wpCronToggle.prop('checked', wpCron === 'active');
 
-			// Set Publish Start Time
-			if (prefLookup.publish_start_time !== undefined) {
-				$startTime.val(prefLookup.publish_start_time);
-			}
+			// Set Posts Per Day (default: 1)
+			var postsPerDay = prefLookup.posts_per_day !== undefined ? prefLookup.posts_per_day : defaults.posts_per_day;
+			$slider.val(postsPerDay);
+			$sliderValue.text(postsPerDay);
 
-			// Set Publish End Time
-			if (prefLookup.publish_end_time !== undefined) {
-				$endTime.val(prefLookup.publish_end_time);
-			}
+			// Set Publish Start Time (default: 9)
+			var startTime = prefLookup.publish_start_time !== undefined ? prefLookup.publish_start_time : defaults.publish_start_time;
+			$startTime.val(startTime);
+
+			// Set Publish End Time (default: 17)
+			var endTime = prefLookup.publish_end_time !== undefined ? prefLookup.publish_end_time : defaults.publish_end_time;
+			$endTime.val(endTime);
 
 			// Update field states after populating
 			toggleFieldsState();
@@ -85,11 +103,13 @@
 		function toggleFieldsState() {
 			var isActive = $activeToggle.is(':checked');
 
+			$wpCronToggle.prop('disabled', !isActive);
 			$slider.prop('disabled', !isActive);
 			$startTime.prop('disabled', !isActive);
 			$endTime.prop('disabled', !isActive);
 
 			// Toggle visual disabled state on field groups
+			$wpCronGroup.toggleClass('rd-pr-field-disabled', !isActive);
 			$postsPerDayGroup.toggleClass('rd-pr-field-disabled', !isActive);
 			$startTimeGroup.toggleClass('rd-pr-field-disabled', !isActive);
 			$endTimeGroup.toggleClass('rd-pr-field-disabled', !isActive);
@@ -175,6 +195,10 @@
 				{
 					key: 'status',
 					value: $activeToggle.is(':checked') ? 'active' : 'inactive'
+				},
+				{
+					key: 'wp_cron',
+					value: $wpCronToggle.is(':checked') ? 'active' : 'inactive'
 				},
 				{
 					key: 'posts_per_day',
@@ -276,12 +300,13 @@
 		}
 
 		/**
-		 * Format a Date object for display (e.g., "Thu 23 Jan")
+		 * Format a Date object for display (e.g., "23/01/26")
 		 */
 		function formatDateForDisplay(date) {
-			var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-			var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-			return days[date.getDay()] + ' ' + date.getDate() + ' ' + months[date.getMonth()];
+			var day = String(date.getDate()).padStart(2, '0');
+			var month = String(date.getMonth() + 1).padStart(2, '0');
+			var year = String(date.getFullYear()).slice(-2);
+			return day + '/' + month + '/' + year;
 		}
 
 		/**
@@ -368,9 +393,37 @@
 		}
 
 		/**
+		 * Render calendar with inactive state (no times)
+		 */
+		function renderInactiveCalendar() {
+			var dates = getNext7Days();
+			var html = '';
+
+			dates.forEach(function(date, index) {
+				var isToday = index === 0;
+				var dayLabel = isToday ? 'Today' : formatDateForDisplay(date);
+
+				html += '<div class="rd-pr-calendar-day rd-pr-calendar-inactive' + (isToday ? ' rd-pr-calendar-today' : '') + '">';
+				html += '<div class="rd-pr-calendar-day-header">' + dayLabel + '</div>';
+				html += '<div class="rd-pr-calendar-times">';
+				html += '<span class="rd-pr-calendar-no-times">Republishing disabled</span>';
+				html += '</div>';
+				html += '</div>';
+			});
+
+			$calendarGrid.html(html);
+		}
+
+		/**
 		 * Fetch and display posttimes for all 7 days
 		 */
 		function loadPostingCalendar() {
+			// If Active toggle is disabled, show inactive calendar
+			if (!$activeToggle.is(':checked')) {
+				renderInactiveCalendar();
+				return;
+			}
+
 			showCalendarLoading();
 
 			var dates = getNext7Days();
