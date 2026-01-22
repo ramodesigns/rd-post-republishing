@@ -24,6 +24,62 @@
 		var $endTimeGroup = $endTime.closest('.rd-pr-field-group');
 
 		/**
+		 * Fetch preferences from the API
+		 */
+		function fetchPreferences() {
+			$.ajax({
+				url: rdPrSettings.restUrl + '/retrieve',
+				method: 'GET',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				success: function(response) {
+					if (response.success && response.data) {
+						populateFormFields(response.data);
+					}
+				},
+				error: function(xhr, status, error) {
+					console.error('Failed to fetch preferences:', error);
+				}
+			});
+		}
+
+		/**
+		 * Populate form fields with preferences data
+		 */
+		function populateFormFields(preferences) {
+			// Create a lookup object for easier access
+			var prefLookup = {};
+			preferences.forEach(function(pref) {
+				prefLookup[pref.key] = pref.value;
+			});
+
+			// Set Active toggle
+			if (prefLookup.status !== undefined) {
+				$activeToggle.prop('checked', prefLookup.status === 'active');
+			}
+
+			// Set Posts Per Day
+			if (prefLookup.posts_per_day !== undefined) {
+				$slider.val(prefLookup.posts_per_day);
+				$sliderValue.text(prefLookup.posts_per_day);
+			}
+
+			// Set Publish Start Time
+			if (prefLookup.publish_start_time !== undefined) {
+				$startTime.val(prefLookup.publish_start_time);
+			}
+
+			// Set Publish End Time
+			if (prefLookup.publish_end_time !== undefined) {
+				$endTime.val(prefLookup.publish_end_time);
+			}
+
+			// Update field states after populating
+			toggleFieldsState();
+		}
+
+		/**
 		 * Toggle fields enabled/disabled state based on Active checkbox
 		 */
 		function toggleFieldsState() {
@@ -100,6 +156,9 @@
 
 		// Initialize state on page load
 		toggleFieldsState();
+
+		// Fetch preferences from API on page load
+		fetchPreferences();
 
 		// Form submission
 		$form.on('submit', function(e) {
