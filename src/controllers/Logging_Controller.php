@@ -51,8 +51,7 @@ class Logging_Controller
         register_rest_route($this->namespace, '/retrieve', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_retrieve_log_request'),
-            //'permission_callback' => array($this, 'check_authentication'),
-            'permission_callback' => '__return_true'
+            'permission_callback' => array($this, 'check_authentication')
         ));
 
         // Public endpoint
