@@ -95,6 +95,9 @@
 
 			// Update field states after populating
 			toggleFieldsState();
+
+			// Load posting calendar after preferences are set
+			loadPostingCalendar();
 		}
 
 		/**
@@ -453,9 +456,6 @@
 					showCalendarError();
 				});
 		}
-
-		// Load posting calendar on page load
-		loadPostingCalendar();
 
 	});
 
