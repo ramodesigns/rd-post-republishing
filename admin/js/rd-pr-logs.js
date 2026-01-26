@@ -11,6 +11,11 @@
 	$(document).ready(function() {
 
 		var $tbody = $('#rd-pr-logs-tbody');
+		var $typeFilter = $('#rd-pr-logs-type-filter');
+		var $limitFilter = $('#rd-pr-logs-limit');
+
+		// Store all logs for filtering
+		var allLogs = [];
 
 		/**
 		 * Fetch logs from the API
@@ -26,7 +31,9 @@
 				},
 				success: function(response) {
 					if (response.success && response.data) {
-						renderLogs(response.data);
+						allLogs = response.data;
+						populateTypeFilter(allLogs);
+						applyFiltersAndRender();
 					} else {
 						showError('No logs found.');
 					}
@@ -42,21 +49,87 @@
 		}
 
 		/**
-		 * Sort logs by datetime descending (most recent first)
+		 * Populate type filter dropdown with unique types
 		 */
-		function sortLogsByDatetime(logs) {
-			return logs.sort(function(a, b) {
-				var dateA = new Date(a.datetime);
-				var dateB = new Date(b.datetime);
+		function populateTypeFilter(logs) {
+			var types = [];
+
+			logs.forEach(function(log) {
+				if (log.type && types.indexOf(log.type) === -1) {
+					types.push(log.type);
+				}
+			});
+
+			// Sort types alphabetically
+			types.sort();
+
+			// Clear existing options except "All"
+			$typeFilter.find('option:not(:first)').remove();
+
+			// Add type options
+			types.forEach(function(type) {
+				$typeFilter.append('<option value="' + escapeHtml(type) + '">' + escapeHtml(type) + '</option>');
+			});
+		}
+
+		/**
+		 * Apply filters and render the table
+		 */
+		function applyFiltersAndRender() {
+			var selectedType = $typeFilter.val();
+			var limit = parseInt($limitFilter.val(), 10);
+
+			// Filter by type
+			var filteredLogs = allLogs;
+			if (selectedType !== '') {
+				filteredLogs = allLogs.filter(function(log) {
+					return log.type === selectedType;
+				});
+			}
+
+			// Sort by timestamp descending (most recent first)
+			var sortedLogs = sortLogsByTimestamp(filteredLogs);
+
+			// Limit rows
+			var limitedLogs = sortedLogs.slice(0, limit);
+
+			renderLogs(limitedLogs);
+		}
+
+		/**
+		 * Sort logs by timestamp descending (most recent first)
+		 */
+		function sortLogsByTimestamp(logs) {
+			return logs.slice().sort(function(a, b) {
+				var dateA = parseTimestamp(a.timestamp);
+				var dateB = parseTimestamp(b.timestamp);
 				return dateB - dateA;
 			});
 		}
 
 		/**
-		 * Format datetime for display
+		 * Parse timestamp string to Date object
+		 * Format: "2026-01-26 14:05:02.189"
 		 */
-		function formatDatetime(datetime) {
-			var date = new Date(datetime);
+		function parseTimestamp(timestamp) {
+			if (!timestamp) {
+				return new Date(0);
+			}
+
+			// Replace space with T for ISO format compatibility
+			var isoString = timestamp.replace(' ', 'T');
+			return new Date(isoString);
+		}
+
+		/**
+		 * Format timestamp for display
+		 */
+		function formatTimestamp(timestamp) {
+			var date = parseTimestamp(timestamp);
+
+			if (isNaN(date.getTime())) {
+				return timestamp || 'Invalid date';
+			}
 
 			// Format: DD/MM/YYYY HH:MM:SS
 			var day = String(date.getDate()).padStart(2, '0');
@@ -73,8 +146,11 @@
 		 * Escape HTML to prevent XSS
 		 */
 		function escapeHtml(text) {
+			if (text === null || text === undefined) {
+				return '';
+			}
 			var div = document.createElement('div');
-			div.textContent = text;
+			div.textContent = String(text);
 			return div.innerHTML;
 		}
 
@@ -87,13 +163,10 @@
 				return;
 			}
 
-			// Sort by datetime descending
-			var sortedLogs = sortLogsByDatetime(logs);
-
 			var html = '';
-			sortedLogs.forEach(function(log) {
+			logs.forEach(function(log) {
 				html += '<tr>';
-				html += '<td class="rd-pr-logs-col-datetime">' + formatDatetime(log.datetime) + '</td>';
+				html += '<td class="rd-pr-logs-col-datetime">' + formatTimestamp(log.timestamp) + '</td>';
 				html += '<td class="rd-pr-logs-col-type"><span class="rd-pr-log-type rd-pr-log-type-' + escapeHtml(log.type) + '">' + escapeHtml(log.type) + '</span></td>';
 				html += '<td class="rd-pr-logs-col-entry">' + escapeHtml(log.entry) + '</td>';
 				html += '</tr>';
@@ -122,6 +195,10 @@
 		function showEmpty() {
 			$tbody.html('<tr class="rd-pr-logs-empty"><td colspan="3">No logs found.</td></tr>');
 		}
+
+		// Event handlers for filters
+		$typeFilter.on('change', applyFiltersAndRender);
+		$limitFilter.on('change', applyFiltersAndRender);
 
 		// Fetch logs on page load
 		fetchLogs();
