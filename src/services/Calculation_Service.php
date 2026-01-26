@@ -195,32 +195,35 @@ class Calculation_Service
     }
 
     /**
-     * Generate deterministic post times based on the date
+     * Generate deterministic post times based on the date and site domain
      *
      * @param string $date The date string used as seed
      * @param int $start_hour The start hour (e.g., 9 for 9am)
      * @param int $end_hour The end hour (e.g., 17 for 5pm)
      * @param int $posts_per_day Number of times to generate
+     * @param string|null $domain Optional domain override for testing
      * @return array Array of times in hh:mm format
      */
-    private function generate_post_times($date, $start_hour, $end_hour, $posts_per_day)
+    private function generate_post_times($date, $start_hour, $end_hour, $posts_per_day, $domain = null)
     {
         $times = array();
+
+        // Get site domain for unique seed per website
+        if ($domain === null) {
+            $domain = parse_url(home_url(), PHP_URL_HOST);
+        }
 
         // Convert hours to minutes from midnight
         $start_minutes = $start_hour * 60;
         $end_minutes = $end_hour * 60;
         $total_minutes = $end_minutes - $start_minutes;
 
-        // Create a seed from the date string
-        $seed = crc32($date);
-
         // Calculate segment size for each post
         $segment_size = $total_minutes / $posts_per_day;
 
         for ($i = 0; $i < $posts_per_day; $i++) {
-            // Generate a deterministic offset within this segment using the seed and index
-            $segment_seed = crc32($date . '_' . $i);
+            // Generate a deterministic offset within this segment using domain, date and index
+            $segment_seed = crc32($domain . '_' . $date . '_' . $i);
             $offset_within_segment = abs($segment_seed) % (int) $segment_size;
 
             // Calculate the time in minutes from midnight
@@ -235,6 +238,21 @@ class Calculation_Service
         }
 
         return $times;
+    }
+
+    /**
+     * Generate post times with a specific domain (for testing purposes)
+     *
+     * @param string $date The date in dd-mm-yyyy format
+     * @param string $domain The domain to use for the seed
+     * @param int $start_hour The start hour
+     * @param int $end_hour The end hour
+     * @param int $posts_per_day Number of posts per day
+     * @return array Array of times in hh:mm format
+     */
+    public function generate_post_times_for_domain($date, $domain, $start_hour = 9, $end_hour = 17, $posts_per_day = 4)
+    {
+        return $this->generate_post_times($date, $start_hour, $end_hour, $posts_per_day, $domain);
     }
 
     /**
