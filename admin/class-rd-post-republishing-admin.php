@@ -244,6 +244,15 @@ class Rd_Post_Republishing_Admin {
 				filemtime( plugin_dir_path( __FILE__ ) . 'js/rd-pr-logs.js' ),
 				true
 			);
+
+			wp_localize_script(
+				'rd-pr-logs',
+				'rdPrLogs',
+				array(
+					'restUrl' => esc_url_raw( rest_url( 'postmetadata/v1/logging' ) ),
+					'nonce'   => wp_create_nonce( 'wp_rest' ),
+				)
+			);
 		}
 
 	}
