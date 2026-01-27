@@ -141,7 +141,7 @@ class Process_Service
             }
 
             // Log the success
-            $this->logging_service->insert_log('republish', $post_id);
+            $this->logging_service->insert_log('republish', 'Successfully Republished Post ' . $post_id);
 
             $republished_posts[] = $result;
         }
