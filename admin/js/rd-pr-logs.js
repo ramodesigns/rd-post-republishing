@@ -206,11 +206,13 @@
 			logs.forEach(function(log) {
 				var currentDate = formatDate(log.timestamp);
 				var showDate = (currentDate !== previousDate);
+				var postId = log.postid ? escapeHtml(log.postid) : '';
 
 				html += '<tr>';
 				html += '<td class="rd-pr-logs-col-date">' + (showDate ? currentDate : '') + '</td>';
 				html += '<td class="rd-pr-logs-col-time">' + formatTime(log.timestamp) + '</td>';
 				html += '<td class="rd-pr-logs-col-type"><span class="rd-pr-log-type rd-pr-log-type-' + escapeHtml(log.type) + '">' + escapeHtml(log.type) + '</span></td>';
+				html += '<td class="rd-pr-logs-col-postid">' + postId + '</td>';
 				html += '<td class="rd-pr-logs-col-entry">' + escapeHtml(log.entry) + '</td>';
 				html += '</tr>';
 
@@ -224,21 +226,21 @@
 		 * Show loading state
 		 */
 		function showLoading() {
-			$tbody.html('<tr class="rd-pr-logs-loading"><td colspan="4">Loading logs...</td></tr>');
+			$tbody.html('<tr class="rd-pr-logs-loading"><td colspan="5">Loading logs...</td></tr>');
 		}
 
 		/**
 		 * Show error state
 		 */
 		function showError(message) {
-			$tbody.html('<tr class="rd-pr-logs-error"><td colspan="4">' + escapeHtml(message) + '</td></tr>');
+			$tbody.html('<tr class="rd-pr-logs-error"><td colspan="5">' + escapeHtml(message) + '</td></tr>');
 		}
 
 		/**
 		 * Show empty state
 		 */
 		function showEmpty() {
-			$tbody.html('<tr class="rd-pr-logs-empty"><td colspan="4">No logs found.</td></tr>');
+			$tbody.html('<tr class="rd-pr-logs-empty"><td colspan="5">No logs found.</td></tr>');
 		}
 
 		// Event handlers for filters
