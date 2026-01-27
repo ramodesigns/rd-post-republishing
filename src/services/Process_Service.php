@@ -187,7 +187,6 @@ class Process_Service
 
         // Get all required preferences
         $status = $this->get_preference_value('status');
-        $status_timestamp = $this->get_preference_value('status_timestamp');
         $posts_per_day = $this->get_preference_value('posts_per_day');
         $publish_start_time = $this->get_preference_value('publish_start_time');
         $publish_end_time = $this->get_preference_value('publish_end_time');
@@ -197,13 +196,6 @@ class Process_Service
             $errors[] = "Preference 'status' is not set";
         } elseif ($status !== 'active') {
             $errors[] = "Preference 'status' must have a value of 'active'";
-        }
-
-        // Validate 'status_timestamp' preference
-        if ($status_timestamp === null) {
-            $errors[] = "Preference 'status_timestamp' is not set";
-        } elseif (!$this->is_valid_past_epoch($status_timestamp)) {
-            $errors[] = "Preference 'status_timestamp' must be a valid epoch time in the past";
         }
 
         // Validate 'posts_per_day' preference
