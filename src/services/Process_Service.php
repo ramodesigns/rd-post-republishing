@@ -125,7 +125,7 @@ class Process_Service
             $post_id = $oldest_post['id'];
 
             // Log the attempt
-            $this->logging_service->insert_log('process', 'Attempting to Republish Post ' . $post_id, $post_id);
+            $this->logging_service->insert_log('process', 'Attempting to Republish Post', $post_id);
 
             // Convert time (hh:mm) to epoch timestamp for today
             $timestamp = $this->convert_time_to_timestamp($time);
@@ -135,13 +135,13 @@ class Process_Service
 
             if (is_wp_error($result)) {
                 // Log the failure
-                $this->logging_service->insert_log('error', 'Failed to Republish Post ' . $post_id, $post_id);
+                $this->logging_service->insert_log('error', 'Failed to Republish Post', $post_id);
                 $errors[] = "Failed to republish post ID " . $post_id . ": " . $result->get_error_message();
                 continue;
             }
 
             // Log the success
-            $this->logging_service->insert_log('republish', 'Successfully Republished Post ' . $post_id, $post_id);
+            $this->logging_service->insert_log('republish', 'Successfully Republished Post', $post_id);
 
             $republished_posts[] = $result;
         }
