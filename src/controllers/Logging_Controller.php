@@ -79,6 +79,11 @@ class Logging_Controller
                 'required' => true,
                 'type' => 'string',
                 'description' => 'Log entry message (max 500 characters)'
+            ),
+            'post_id' => array(
+                'required' => false,
+                'type' => 'integer',
+                'description' => 'Post ID associated with the log entry (max 10 digits)'
             )
         );
     }
@@ -123,8 +128,9 @@ class Logging_Controller
         try {
             $type = $request->get_param('type');
             $entry = $request->get_param('entry');
+            $post_id = $request->get_param('post_id');
 
-            $result = $this->logging_service->insert_log($type, $entry);
+            $result = $this->logging_service->insert_log($type, $entry, $post_id);
 
             if ($result['success']) {
                 return new WP_REST_Response(array(

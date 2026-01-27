@@ -52,7 +52,7 @@
 			var postMap = {};
 
 			logs.forEach(function(log) {
-				var postId = extractPostId(log.entry);
+				var postId = log.postid ? parseInt(log.postid, 10) : extractPostIdFromEntry(log.entry);
 				if (postId) {
 					var timestamp = parseTimestamp(log.timestamp);
 
@@ -75,10 +75,10 @@
 		}
 
 		/**
-		 * Extract post ID from log entry text
+		 * Extract post ID from log entry text (fallback for older logs without postid)
 		 * Format: "Successfully Republished Post 123"
 		 */
-		function extractPostId(entry) {
+		function extractPostIdFromEntry(entry) {
 			if (!entry) {
 				return null;
 			}

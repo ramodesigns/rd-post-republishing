@@ -107,6 +107,7 @@ class Init_Setup
             timestamp datetime(3) NOT NULL,
             type varchar(50) NOT NULL,
             entry varchar(500) NOT NULL,
+            postid bigint(10) unsigned DEFAULT NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
 
