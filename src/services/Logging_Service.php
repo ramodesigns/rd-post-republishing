@@ -22,6 +22,11 @@ class Logging_Service
     const MAX_VALUE_LENGTH = 500;
 
     /**
+     * Maximum digits for post ID
+     */
+    const MAX_POSTID_DIGITS = 10;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -41,7 +46,7 @@ class Logging_Service
         $table_name = Init_Setup::get_log_table_name();
 
         $results = $wpdb->get_results(
-            "SELECT id, timestamp, type, entry FROM $table_name ORDER BY timestamp DESC",
+            "SELECT id, timestamp, type, entry, postid FROM $table_name ORDER BY timestamp DESC",
             ARRAY_A
         );
 
@@ -66,7 +71,7 @@ class Logging_Service
 
         $results = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, timestamp, type, entry FROM $table_name WHERE type = %s ORDER BY timestamp DESC",
+                "SELECT id, timestamp, type, entry, postid FROM $table_name WHERE type = %s ORDER BY timestamp DESC",
                 $type
             ),
             ARRAY_A
@@ -84,11 +89,12 @@ class Logging_Service
      *
      * @param string $type The log type
      * @param string $entry The log entry message
+     * @param int|null $post_id The post ID (optional)
      * @return array Result with 'success' and 'error' or 'id'
      */
-    public function insert_log($type, $entry)
+    public function insert_log($type, $entry, $post_id = null)
     {
-        $validation_error = $this->validate_log($type, $entry);
+        $validation_error = $this->validate_log($type, $entry, $post_id);
 
         if ($validation_error !== null) {
             return array(
@@ -104,15 +110,19 @@ class Logging_Service
         // Generate timestamp with milliseconds
         $timestamp = $this->get_timestamp_with_milliseconds();
 
-        $result = $wpdb->insert(
-            $table_name,
-            array(
-                'timestamp' => $timestamp,
-                'type' => $type,
-                'entry' => (string) $entry
-            ),
-            array('%s', '%s', '%s')
+        $data = array(
+            'timestamp' => $timestamp,
+            'type' => $type,
+            'entry' => (string) $entry
         );
+        $format = array('%s', '%s', '%s');
+
+        if ($post_id !== null) {
+            $data['postid'] = (int) $post_id;
+            $format[] = '%d';
+        }
+
+        $result = $wpdb->insert($table_name, $data, $format);
 
         if ($result === false) {
             return array(
@@ -168,13 +178,14 @@ class Logging_Service
     }
 
     /**
-     * Validate a log type and entry
+     * Validate a log type, entry, and post_id
      *
      * @param mixed $type The log type
      * @param mixed $entry The log entry
+     * @param mixed $post_id The post ID (optional)
      * @return string|null Error message or null if valid
      */
-    private function validate_log($type, $entry)
+    private function validate_log($type, $entry, $post_id = null)
     {
         if ($type === null || $type === '') {
             return 'Type is required';
@@ -199,6 +210,22 @@ class Logging_Service
         $entry_string = (string) $entry;
         if (strlen($entry_string) > self::MAX_VALUE_LENGTH) {
             return 'Entry exceeds maximum length of ' . self::MAX_VALUE_LENGTH . ' characters';
+        }
+
+        // Validate post_id if provided
+        if ($post_id !== null) {
+            if (!is_numeric($post_id)) {
+                return 'Post ID must be a number';
+            }
+
+            $post_id_int = (int) $post_id;
+            if ($post_id_int < 0) {
+                return 'Post ID must be a positive number';
+            }
+
+            if (strlen((string) $post_id_int) > self::MAX_POSTID_DIGITS) {
+                return 'Post ID exceeds maximum length of ' . self::MAX_POSTID_DIGITS . ' digits';
+            }
         }
 
         return null;
