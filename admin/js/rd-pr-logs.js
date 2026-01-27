@@ -97,14 +97,38 @@
 		}
 
 		/**
-		 * Sort logs by timestamp descending (most recent first)
+		 * Sort logs by date descending (newest first), then by time ascending within each date
 		 */
 		function sortLogsByTimestamp(logs) {
 			return logs.slice().sort(function(a, b) {
 				var dateA = parseTimestamp(a.timestamp);
 				var dateB = parseTimestamp(b.timestamp);
-				return dateB - dateA;
+
+				// Get date-only strings for comparison (YYYY-MM-DD)
+				var dateOnlyA = getDateOnly(dateA);
+				var dateOnlyB = getDateOnly(dateB);
+
+				// First sort by date descending (newest date first)
+				if (dateOnlyA !== dateOnlyB) {
+					return dateOnlyB.localeCompare(dateOnlyA);
+				}
+
+				// Within the same date, sort by time ascending (earliest time first)
+				return dateA - dateB;
 			});
+		}
+
+		/**
+		 * Get date-only string from Date object (YYYY-MM-DD format for comparison)
+		 */
+		function getDateOnly(date) {
+			if (isNaN(date.getTime())) {
+				return '';
+			}
+			var year = date.getFullYear();
+			var month = String(date.getMonth() + 1).padStart(2, '0');
+			var day = String(date.getDate()).padStart(2, '0');
+			return year + '-' + month + '-' + day;
 		}
 
 		/**
@@ -122,24 +146,37 @@
 		}
 
 		/**
-		 * Format timestamp for display
+		 * Format date for display (DD/MM/YY)
 		 */
-		function formatTimestamp(timestamp) {
+		function formatDate(timestamp) {
 			var date = parseTimestamp(timestamp);
 
 			if (isNaN(date.getTime())) {
 				return timestamp || 'Invalid date';
 			}
 
-			// Format: DD/MM/YYYY HH:MM:SS
 			var day = String(date.getDate()).padStart(2, '0');
 			var month = String(date.getMonth() + 1).padStart(2, '0');
-			var year = date.getFullYear();
+			var year = String(date.getFullYear()).slice(-2);
+
+			return day + '/' + month + '/' + year;
+		}
+
+		/**
+		 * Format time for display (HH:MM:SS)
+		 */
+		function formatTime(timestamp) {
+			var date = parseTimestamp(timestamp);
+
+			if (isNaN(date.getTime())) {
+				return '';
+			}
+
 			var hours = String(date.getHours()).padStart(2, '0');
 			var minutes = String(date.getMinutes()).padStart(2, '0');
 			var seconds = String(date.getSeconds()).padStart(2, '0');
 
-			return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+			return hours + ':' + minutes + ':' + seconds;
 		}
 
 		/**
@@ -164,12 +201,20 @@
 			}
 
 			var html = '';
+			var previousDate = '';
+
 			logs.forEach(function(log) {
+				var currentDate = formatDate(log.timestamp);
+				var showDate = (currentDate !== previousDate);
+
 				html += '<tr>';
-				html += '<td class="rd-pr-logs-col-datetime">' + formatTimestamp(log.timestamp) + '</td>';
+				html += '<td class="rd-pr-logs-col-date">' + (showDate ? currentDate : '') + '</td>';
+				html += '<td class="rd-pr-logs-col-time">' + formatTime(log.timestamp) + '</td>';
 				html += '<td class="rd-pr-logs-col-type"><span class="rd-pr-log-type rd-pr-log-type-' + escapeHtml(log.type) + '">' + escapeHtml(log.type) + '</span></td>';
 				html += '<td class="rd-pr-logs-col-entry">' + escapeHtml(log.entry) + '</td>';
 				html += '</tr>';
+
+				previousDate = currentDate;
 			});
 
 			$tbody.html(html);
@@ -179,21 +224,21 @@
 		 * Show loading state
 		 */
 		function showLoading() {
-			$tbody.html('<tr class="rd-pr-logs-loading"><td colspan="3">Loading logs...</td></tr>');
+			$tbody.html('<tr class="rd-pr-logs-loading"><td colspan="4">Loading logs...</td></tr>');
 		}
 
 		/**
 		 * Show error state
 		 */
 		function showError(message) {
-			$tbody.html('<tr class="rd-pr-logs-error"><td colspan="3">' + escapeHtml(message) + '</td></tr>');
+			$tbody.html('<tr class="rd-pr-logs-error"><td colspan="4">' + escapeHtml(message) + '</td></tr>');
 		}
 
 		/**
 		 * Show empty state
 		 */
 		function showEmpty() {
-			$tbody.html('<tr class="rd-pr-logs-empty"><td colspan="3">No logs found.</td></tr>');
+			$tbody.html('<tr class="rd-pr-logs-empty"><td colspan="4">No logs found.</td></tr>');
 		}
 
 		// Event handlers for filters
