@@ -1,14 +1,199 @@
 /**
- * Configure page styles.
+ * History page styles.
  *
  * @package    Rd_Post_Republishing
  * @subpackage Rd_Post_Republishing/admin/css
  */
 
-.rd-pr-configure-wrap {
-	margin-top: 20px;
+.rd-pr-history-wrap {
+	max-width: 1200px;
+	margin: 20px 0;
 }
 
-.rd-pr-configure-content {
-	margin-top: 20px;
+.rd-pr-history-wrap h1 {
+	font-size: 23px;
+	font-weight: 400;
+	margin: 0 0 20px 0;
+	padding: 9px 0 4px 0;
+	line-height: 1.3;
+}
+
+.rd-pr-history-content {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+/* Filters */
+.rd-pr-history-filters {
+	display: flex;
+	gap: 20px;
+	padding: 16px;
+	border-bottom: 1px solid #c3c4c7;
+	background: #f6f7f7;
+}
+
+.rd-pr-history-filter-group {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.rd-pr-history-filter-group label {
+	font-size: 14px;
+	font-weight: 500;
+	color: #1d2327;
+	white-space: nowrap;
+}
+
+.rd-pr-history-select {
+	min-width: 120px;
+	height: 36px;
+	padding: 0 28px 0 10px;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #1d2327;
+	background-color: #fff;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%231d2327' d='M5 6l5 5 5-5 2 1-7 7-7-7z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 6px center;
+	background-size: 18px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+
+.rd-pr-history-select:hover {
+	border-color: #2271b1;
+}
+
+.rd-pr-history-select:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+/* Table Container */
+.rd-pr-history-table-container {
+	overflow-x: auto;
+}
+
+/* Table Styles */
+.rd-pr-history-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.rd-pr-history-table thead {
+	background: #f6f7f7;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.rd-pr-history-table th {
+	text-align: left;
+	padding: 12px 16px;
+	font-weight: 600;
+	color: #1d2327;
+	white-space: nowrap;
+}
+
+.rd-pr-history-table td {
+	padding: 12px 16px;
+	border-bottom: 1px solid #f0f0f1;
+	vertical-align: top;
+	color: #50575e;
+}
+
+.rd-pr-history-table tbody tr:hover {
+	background: #f6f7f7;
+}
+
+.rd-pr-history-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+/* Column Widths */
+.rd-pr-history-col-id {
+	width: 80px;
+	white-space: nowrap;
+	font-family: monospace;
+	font-size: 13px;
+}
+
+.rd-pr-history-col-title {
+	word-break: break-word;
+}
+
+.rd-pr-history-col-datetime {
+	width: 160px;
+	white-space: nowrap;
+	font-family: monospace;
+	font-size: 13px;
+}
+
+/* Loading, Error, Empty States */
+.rd-pr-history-loading td,
+.rd-pr-history-error td,
+.rd-pr-history-empty td {
+	text-align: center;
+	padding: 40px 20px;
+	color: #646970;
+	font-style: italic;
+}
+
+.rd-pr-history-error td {
+	color: #d63638;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+	.rd-pr-history-wrap {
+		margin: 10px 0;
+	}
+
+	.rd-pr-history-filters {
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.rd-pr-history-filter-group {
+		width: 100%;
+	}
+
+	.rd-pr-history-select {
+		flex: 1;
+	}
+
+	.rd-pr-history-table th,
+	.rd-pr-history-table td {
+		padding: 10px 12px;
+	}
+
+	.rd-pr-history-col-id {
+		width: auto;
+	}
+
+	.rd-pr-history-col-datetime {
+		width: auto;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.rd-pr-history-filters {
+		padding: 12px;
+	}
+
+	.rd-pr-history-table {
+		font-size: 13px;
+	}
+
+	.rd-pr-history-table th,
+	.rd-pr-history-table td {
+		padding: 8px 10px;
+	}
 }

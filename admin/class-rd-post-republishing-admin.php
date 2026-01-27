@@ -91,11 +91,11 @@ class Rd_Post_Republishing_Admin {
 			array( $this, 'render_settings_page' )
 		);
 
-		// Add Configure submenu
+		// Add History submenu
 		$this->page_hooks['configure'] = add_submenu_page(
 			'rd-post-republisher',
-			__( 'Configure', 'rd-post-republishing' ),
-			__( 'Configure', 'rd-post-republishing' ),
+			__( 'History', 'rd-post-republishing' ),
+			__( 'History', 'rd-post-republishing' ),
 			'manage_options',
 			'rd-post-republisher-configure',
 			array( $this, 'render_configure_page' )
@@ -232,6 +232,15 @@ class Rd_Post_Republishing_Admin {
 				// $this->version,
 				filemtime( plugin_dir_path( __FILE__ ) . 'js/rd-pr-configure.js' ),
 				true
+			);
+
+			wp_localize_script(
+				'rd-pr-configure',
+				'rdPrHistory',
+				array(
+					'restUrl' => esc_url_raw( rest_url( 'postmetadata/v1/logging' ) ),
+					'nonce'   => wp_create_nonce( 'wp_rest' ),
+				)
 			);
 		}
 
