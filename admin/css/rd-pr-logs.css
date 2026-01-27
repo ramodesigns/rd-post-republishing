@@ -118,8 +118,15 @@
 }
 
 /* Column Widths */
-.rd-pr-logs-col-datetime {
-	width: 180px;
+.rd-pr-logs-col-date {
+	width: 80px;
+	white-space: nowrap;
+	font-family: monospace;
+	font-size: 13px;
+}
+
+.rd-pr-logs-col-time {
+	width: 80px;
 	white-space: nowrap;
 	font-family: monospace;
 	font-size: 13px;
@@ -208,7 +215,11 @@
 		padding: 10px 12px;
 	}
 
-	.rd-pr-logs-col-datetime {
+	.rd-pr-logs-col-date {
+		width: auto;
+	}
+
+	.rd-pr-logs-col-time {
 		width: auto;
 	}
 
