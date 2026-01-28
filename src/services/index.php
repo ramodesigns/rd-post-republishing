@@ -14,3 +14,6 @@ new Calculation_Service();
 
 require_once plugin_dir_path( __FILE__ ) . 'Process_Service.php';
 new Process_Service();
+
+require_once plugin_dir_path( __FILE__ ) . 'History_Service.php';
+new History_Service();
