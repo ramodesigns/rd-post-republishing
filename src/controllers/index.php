@@ -14,3 +14,6 @@ new Logging_Controller();
 
 require_once plugin_dir_path( __FILE__ ) . 'Calculation_Controller.php';
 new Calculation_Controller();
+
+require_once plugin_dir_path( __FILE__ ) . 'History_Controller.php';
+new History_Controller();
