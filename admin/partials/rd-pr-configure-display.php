@@ -31,9 +31,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<table class="rd-pr-history-table">
 				<thead>
 					<tr>
+						<th class="rd-pr-history-col-datetime"><?php esc_html_e( 'Date/Time', 'rd-post-republishing' ); ?></th>
 						<th class="rd-pr-history-col-id"><?php esc_html_e( 'Post ID', 'rd-post-republishing' ); ?></th>
 						<th class="rd-pr-history-col-title"><?php esc_html_e( 'Post Title', 'rd-post-republishing' ); ?></th>
-						<th class="rd-pr-history-col-datetime"><?php esc_html_e( 'Republished Date/Time', 'rd-post-republishing' ); ?></th>
 					</tr>
 				</thead>
 				<tbody id="rd-pr-history-tbody">
