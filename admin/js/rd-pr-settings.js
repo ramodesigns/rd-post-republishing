@@ -176,10 +176,10 @@
 			// Set Access Token active toggle
 			var atActive = prefLookup.at_active !== undefined ? prefLookup.at_active : defaults.at_active;
 			$atActiveToggle.prop('checked', atActive === 'active');
-			$atDisplayInput.val(cronToken);
 
 			if (atActive === 'active') {
 				$atDisplayContainer.show();
+				fetchAndPopulateAccessToken();
 			} else {
 				$atDisplayContainer.hide();
 			}
@@ -275,6 +275,7 @@
 
 			if (isActive) {
 				$atDisplayContainer.show();
+				fetchAndPopulateAccessToken();
 			} else {
 				$atDisplayContainer.hide();
 			}
@@ -350,6 +351,27 @@
 				},
 				complete: function() {
 					$btn.prop('disabled', false).text(originalText);
+				}
+			});
+		}
+
+		/**
+		 * Fetch and populate the Access Token from the authentication API
+		 */
+		function fetchAndPopulateAccessToken() {
+			$.ajax({
+				url: rdPrSettings.restUrl.replace('/preferences', '/authentication') + '/retrieve',
+				method: 'GET',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				success: function(response) {
+					if (response && response.token) {
+						$atDisplayInput.val(response.token);
+					}
+				},
+				error: function(xhr, status, error) {
+					console.error('Failed to retrieve access token:', error);
 				}
 			});
 		}
