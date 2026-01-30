@@ -69,7 +69,7 @@ class Init_Setup
         $sql = "CREATE TABLE $table_name (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             `key` varchar(50) NOT NULL,
-            `value` varchar(500) NOT NULL,
+            `value` text NOT NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
 

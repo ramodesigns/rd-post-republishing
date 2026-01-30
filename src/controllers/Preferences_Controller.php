@@ -102,7 +102,7 @@ class Preferences_Controller
                         ),
                         'value' => array(
                             'type' => 'string',
-                            'description' => 'Preference value (max 500 characters)'
+                            'description' => 'Preference value (max 1000 characters)'
                         )
                     )
                 )

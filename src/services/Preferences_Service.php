@@ -19,7 +19,7 @@ class Preferences_Service
     /**
      * Maximum length for preference value
      */
-    const MAX_VALUE_LENGTH = 500;
+    const MAX_VALUE_LENGTH = 1000;
 
     /**
      * Constructor
