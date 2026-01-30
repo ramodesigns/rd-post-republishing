@@ -45,6 +45,13 @@
 			$('.rd-pr-tab-content').removeClass('rd-pr-tab-active');
 			$('#rd-pr-tab-' + tabId).addClass('rd-pr-tab-active');
 
+			// Show/Hide Posting Calendar based on tab
+			if (tabId === 'preferences') {
+				$('.rd-pr-calendar-panel').show();
+			} else {
+				$('.rd-pr-calendar-panel').hide();
+			}
+
 			// Update URL hash without jumping
 			if (history.pushState) {
 				history.pushState(null, null, '#' + tabId);
