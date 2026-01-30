@@ -22,17 +22,20 @@ class Preferences_Controller
     private $namespace = 'postmetadata/v1/preferences';
 
     /**
-     * Preferences service instance
+     * Authorisation helper instance
      *
-     * @var Preferences_Service
+     * @var Authorisation_Helper
      */
-    private $preferences_service;
+    private $authorisation_helper;
 
     /**
      * Constructor
+     *
+     * @param Authorisation_Helper $authorisation_helper
      */
-    public function __construct()
+    public function __construct($authorisation_helper)
     {
+        $this->authorisation_helper = $authorisation_helper;
         $this->preferences_service = new Preferences_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
@@ -60,14 +63,14 @@ class Preferences_Controller
         register_rest_route($this->namespace, '/updatepublic', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_update_preferences_request'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_debug_authorization'),
             'args' => $this->get_endpoint_args()
         ));
 
         register_rest_route($this->namespace, '/retrievepublic', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_retrieve_preferences_request'),
-            'permission_callback' => '__return_true'
+            'permission_callback' => array($this, 'check_debug_authorization')
         ));
     }
 
@@ -97,6 +100,25 @@ class Preferences_Controller
                     )
                 )
             )
+        );
+    }
+
+    /**
+     * Permission callback for public endpoints
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_debug_authorization($request)
+    {
+        if ($this->authorisation_helper->is_debug_authorized()) {
+            return true;
+        }
+
+        return new WP_Error(
+            'rest_forbidden',
+            __('Public access is restricted. Please enable Debug mode in settings.'),
+            array('status' => 403)
         );
     }
 

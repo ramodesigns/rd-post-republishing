@@ -26,10 +26,20 @@ class Logging_Controller
     private $logging_service;
 
     /**
-     * Constructor
+     * Authorisation helper instance
+     *
+     * @var Authorisation_Helper
      */
-    public function __construct()
+    private $authorisation_helper;
+
+    /**
+     * Constructor
+     *
+     * @param Authorisation_Helper $authorisation_helper
+     */
+    public function __construct($authorisation_helper)
     {
+        $this->authorisation_helper = $authorisation_helper;
         $this->logging_service = new Logging_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
@@ -43,8 +53,7 @@ class Logging_Controller
         register_rest_route($this->namespace, '/add', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_add_log_request'),
-            //'permission_callback' => array($this, 'check_authentication'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_authentication'),
             'args' => $this->get_endpoint_args()
         ));
 
@@ -54,11 +63,18 @@ class Logging_Controller
             'permission_callback' => array($this, 'check_authentication')
         ));
 
-        // Public endpoint
+        // Public endpoints
+        register_rest_route($this->namespace, '/addpublic', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_add_log_request'),
+            'permission_callback' => array($this, 'check_debug_authorization'),
+            'args' => $this->get_endpoint_args()
+        ));
+
         register_rest_route($this->namespace, '/retrievepublic', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_retrieve_log_request'),
-            'permission_callback' => '__return_true'
+            'permission_callback' => array($this, 'check_debug_authorization')
         ));
     }
 
@@ -85,6 +101,25 @@ class Logging_Controller
                 'type' => 'integer',
                 'description' => 'Post ID associated with the log entry (max 10 digits)'
             )
+        );
+    }
+
+    /**
+     * Permission callback for public endpoints
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_debug_authorization($request)
+    {
+        if ($this->authorisation_helper->is_debug_authorized()) {
+            return true;
+        }
+
+        return new WP_Error(
+            'rest_forbidden',
+            __('Public access is restricted. Please enable Debug mode in settings.'),
+            array('status' => 403)
         );
     }
 

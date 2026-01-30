@@ -27,10 +27,20 @@ class History_Controller
     private $history_service;
 
     /**
-     * Constructor
+     * Authorisation helper instance
+     *
+     * @var Authorisation_Helper
      */
-    public function __construct()
+    private $authorisation_helper;
+
+    /**
+     * Constructor
+     *
+     * @param Authorisation_Helper $authorisation_helper
+     */
+    public function __construct($authorisation_helper)
     {
+        $this->authorisation_helper = $authorisation_helper;
         $this->history_service = new History_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
@@ -51,8 +61,27 @@ class History_Controller
         register_rest_route($this->namespace, '/retrievepublic', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_retrieve_history_request'),
-            'permission_callback' => '__return_true'
+            'permission_callback' => array($this, 'check_debug_authorization')
         ));
+    }
+
+    /**
+     * Permission callback for public endpoints
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_debug_authorization($request)
+    {
+        if ($this->authorisation_helper->is_debug_authorized()) {
+            return true;
+        }
+
+        return new WP_Error(
+            'rest_forbidden',
+            __('Public access is restricted. Please enable Debug mode in settings.'),
+            array('status' => 403)
+        );
     }
 
     /**

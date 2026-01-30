@@ -16,6 +16,9 @@
 		var $sliderValue = $('#rd-pr-posts-per-day-value');
 		var $startTime = $('#rd-pr-start-time');
 		var $endTime = $('#rd-pr-end-time');
+		var $debugToggle = $('#rd-pr-debug');
+		var $debugTimestampValue = $('#rd-pr-debug-timestamp-value');
+		var $debugTimestampContainer = $('#rd-pr-debug-timestamp-container');
 		var $form = $('#rd-pr-settings-form');
 		var $submitGroup = $('.rd-pr-submit-group');
 
@@ -59,7 +62,8 @@
 			wp_cron: 'active',
 			posts_per_day: '1',
 			publish_start_time: '9',
-			publish_end_time: '17'
+			publish_end_time: '17',
+			debug_timestamp: ''
 		};
 
 		/**
@@ -92,6 +96,30 @@
 			// Set Publish End Time (default: 17)
 			var endTime = prefLookup.publish_end_time !== undefined ? prefLookup.publish_end_time : defaults.publish_end_time;
 			$endTime.val(endTime);
+
+			// Set Debug toggle based on debug_timestamp
+			var debugTimestamp = prefLookup.debug_timestamp !== undefined ? prefLookup.debug_timestamp : defaults.debug_timestamp;
+			var isDebugOn = false;
+			var debugDisplay = '';
+
+			if (debugTimestamp && !isNaN(debugTimestamp)) {
+				var now = Math.floor(Date.now() / 1000);
+				var timestamp = parseInt(debugTimestamp, 10);
+				if (timestamp > now) {
+					isDebugOn = true;
+					// Format timestamp for display
+					var date = new Date(timestamp * 1000);
+					debugDisplay = date.toLocaleString();
+				}
+			}
+
+			$debugToggle.prop('checked', isDebugOn);
+			if (isDebugOn) {
+				$debugTimestampValue.text(debugDisplay);
+				$debugTimestampContainer.show();
+			} else {
+				$debugTimestampContainer.hide();
+			}
 
 			// Update field states after populating
 			toggleFieldsState();
@@ -214,6 +242,10 @@
 				{
 					key: 'publish_end_time',
 					value: $endTime.val()
+				},
+				{
+					key: 'debug_timestamp',
+					value: $debugToggle.is(':checked') ? Math.floor(Date.now() / 1000 + 12 * 3600).toString() : ''
 				}
 			];
 
@@ -226,14 +258,16 @@
 				contentType: 'application/json',
 				data: JSON.stringify({ preferences: preferences }),
 				success: function(response) {
-					if (response.success) {
-						showSuccessMessage('Settings saved successfully.');
-						// Refresh the posting calendar with new settings
-						loadPostingCalendar();
-					} else {
-						showValidationError(response.message || 'Failed to save settings.');
-					}
-				},
+			if (response.success) {
+				showSuccessMessage('Settings saved successfully.');
+				// Refresh the posting calendar with new settings
+				loadPostingCalendar();
+				// Re-fetch preferences to update debug timestamp display
+				fetchPreferences();
+			} else {
+				showValidationError(response.message || 'Failed to save settings.');
+			}
+		},
 				error: function(xhr, status, error) {
 					var message = 'Failed to save settings.';
 					if (xhr.responseJSON && xhr.responseJSON.message) {

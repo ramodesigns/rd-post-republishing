@@ -75,6 +75,7 @@ class Preferences_Service
         return $result;
     }
 
+
     /**
      * Update multiple preferences
      *

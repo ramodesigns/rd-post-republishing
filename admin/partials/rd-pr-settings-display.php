@@ -119,6 +119,26 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 				</div>
 			</div>
 
+			<!-- Debug Toggle -->
+			<div class="rd-pr-field-group">
+				<label class="rd-pr-field-label" for="rd-pr-debug">
+					<?php esc_html_e( 'Debug', 'rd-post-republishing' ); ?>
+				</label>
+				<div class="rd-pr-field-input">
+					<label class="rd-pr-toggle">
+						<input type="checkbox" id="rd-pr-debug" name="debug" value="1">
+						<span class="rd-pr-toggle-slider"></span>
+					</label>
+					<span class="rd-pr-field-description">
+						<?php esc_html_e( 'Enable debug mode', 'rd-post-republishing' ); ?>
+					</span>
+					<div id="rd-pr-debug-timestamp-container" class="rd-pr-debug-timestamp" style="display: none;">
+						<strong><?php esc_html_e( 'Debug Expires:', 'rd-post-republishing' ); ?></strong>
+						<span id="rd-pr-debug-timestamp-value"></span>
+					</div>
+				</div>
+			</div>
+
 			<!-- Save Button -->
 			<div class="rd-pr-field-group rd-pr-submit-group">
 				<button type="submit" id="rd-pr-save-settings" class="rd-pr-button rd-pr-button-primary">

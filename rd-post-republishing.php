@@ -67,6 +67,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-rd-post-republishing.php';
 require plugin_dir_path( __FILE__ ) . 'setup/index.php';
 
 require plugin_dir_path( __FILE__ ) . 'src/services/index.php';
+require plugin_dir_path( __FILE__ ) . 'src/helpers/index.php';
 require plugin_dir_path( __FILE__ ) . 'src/controllers/index.php';
 
 
