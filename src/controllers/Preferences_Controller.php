@@ -72,6 +72,13 @@ class Preferences_Controller
             'callback' => array($this, 'handle_retrieve_preferences_request'),
             'permission_callback' => array($this, 'check_debug_authorization')
         ));
+
+        // Generate Token endpoint (protected)
+        register_rest_route($this->namespace, '/generate_token', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_generate_token_request'),
+            'permission_callback' => array($this, 'check_authentication')
+        ));
     }
 
     /**
@@ -251,6 +258,31 @@ class Preferences_Controller
         } catch (Exception $e) {
             return new WP_Error(
                 'retrieve_preference_error',
+                __('An error occurred: ') . $e->getMessage(),
+                array('status' => 500)
+            );
+        }
+    }
+
+    /**
+     * Handle generate token request
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response|WP_Error
+     */
+    public function handle_generate_token_request($request)
+    {
+        try {
+            $token = $this->authorisation_helper->generate_token();
+
+            return new WP_REST_Response(array(
+                'success' => true,
+                'token' => $token,
+                'timestamp' => current_time('mysql')
+            ), 200);
+        } catch (Exception $e) {
+            return new WP_Error(
+                'generate_token_error',
                 __('An error occurred: ') . $e->getMessage(),
                 array('status' => 500)
             );

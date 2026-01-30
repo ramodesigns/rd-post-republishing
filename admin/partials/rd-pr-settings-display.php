@@ -130,12 +130,32 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 						<span class="rd-pr-toggle-slider"></span>
 					</label>
 					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Enable debug mode', 'rd-post-republishing' ); ?>
+						<?php esc_html_e( 'Enable debug mode (automatically expires after 12 hours).', 'rd-post-republishing' ); ?>
 					</span>
 					<div id="rd-pr-debug-timestamp-container" class="rd-pr-debug-timestamp" style="display: none;">
 						<strong><?php esc_html_e( 'Debug Expires:', 'rd-post-republishing' ); ?></strong>
 						<span id="rd-pr-debug-timestamp-value"></span>
 					</div>
+				</div>
+			</div>
+
+			<!-- Cron Secret Token -->
+			<div class="rd-pr-field-group">
+				<label class="rd-pr-field-label" for="rd-pr-cron-token">
+					<?php esc_html_e( 'Cron Secret Token', 'rd-post-republishing' ); ?>
+				</label>
+				<div class="rd-pr-field-input">
+					<div class="rd-pr-token-container">
+						<input type="text" id="rd-pr-cron-token" name="cron_secret_token" class="rd-pr-input" readonly>
+						<button type="button" id="rd-pr-generate-token" class="rd-pr-button">
+							<?php esc_html_e( 'Generate Token', 'rd-post-republishing' ); ?>
+						</button>
+					</div>
+					<span class="rd-pr-field-description">
+						<?php esc_html_e( 'Use this token to authenticate external cron jobs. Append ', 'rd-post-republishing' ); ?>
+						<code>?token=YOUR_TOKEN</code>
+						<?php esc_html_e( ' to your public endpoint URLs.', 'rd-post-republishing' ); ?>
+					</span>
 				</div>
 			</div>
 

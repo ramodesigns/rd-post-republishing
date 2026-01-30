@@ -35,7 +35,9 @@ The plugin provides several REST API endpoints:
 * `GET /wp-json/postmetadata/v1/process/validate`: Validates the prerequisites for republishing (protected).
 * `GET /wp-json/postmetadata/v1/process/validatepublic`: Validates the prerequisites for republishing (requires Debug mode).
 
-Note: Public endpoints (`*public`) are restricted by default and only accessible when the "Debug" mode is enabled in the plugin settings. Debug mode expires automatically after 12 hours.
+Note: Public endpoints (`*public`) are restricted by default. They can be accessed in two ways:
+1. **Debug Mode**: Enable "Debug" mode in the plugin settings. This provides temporary access for 12 hours.
+2. **Cron Secret Token**: Generate a secret token in the plugin settings and append it to your request as a query parameter (e.g., `?token=YOUR_TOKEN`). This is the recommended method for automated server-side cron jobs.
 
 == Changelog ==
 

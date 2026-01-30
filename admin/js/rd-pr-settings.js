@@ -19,6 +19,8 @@
 		var $debugToggle = $('#rd-pr-debug');
 		var $debugTimestampValue = $('#rd-pr-debug-timestamp-value');
 		var $debugTimestampContainer = $('#rd-pr-debug-timestamp-container');
+		var $cronTokenInput = $('#rd-pr-cron-token');
+		var $generateTokenButton = $('#rd-pr-generate-token');
 		var $form = $('#rd-pr-settings-form');
 		var $submitGroup = $('.rd-pr-submit-group');
 
@@ -63,7 +65,8 @@
 			posts_per_day: '1',
 			publish_start_time: '9',
 			publish_end_time: '17',
-			debug_timestamp: ''
+			debug_timestamp: '',
+			cron_secret_token: ''
 		};
 
 		/**
@@ -120,6 +123,10 @@
 			} else {
 				$debugTimestampContainer.hide();
 			}
+
+			// Set Cron Secret Token
+			var cronToken = prefLookup.cron_secret_token !== undefined ? prefLookup.cron_secret_token : defaults.cron_secret_token;
+			$cronTokenInput.val(cronToken);
 
 			// Update field states after populating
 			toggleFieldsState();
@@ -205,6 +212,35 @@
 		$startTime.on('change', validateTimeRange);
 		$endTime.on('change', validateTimeRange);
 
+		// Generate Token button handler
+		$generateTokenButton.on('click', function() {
+			var $btn = $(this);
+			var originalText = $btn.text();
+			$btn.prop('disabled', true).text('Generating...');
+
+			$.ajax({
+				url: rdPrSettings.restUrl + '/generate_token',
+				method: 'POST',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				success: function(response) {
+					if (response.success && response.token) {
+						$cronTokenInput.val(response.token);
+						showSuccessMessage('New token generated. Don\'t forget to Save settings.');
+					} else {
+						showValidationError('Failed to generate token.');
+					}
+				},
+				error: function() {
+					showValidationError('Failed to generate token.');
+				},
+				complete: function() {
+					$btn.prop('disabled', false).text(originalText);
+				}
+			});
+		});
+
 		// Initialize state on page load
 		toggleFieldsState();
 
@@ -246,6 +282,10 @@
 				{
 					key: 'debug_timestamp',
 					value: $debugToggle.is(':checked') ? Math.floor(Date.now() / 1000 + 12 * 3600).toString() : ''
+				},
+				{
+					key: 'cron_secret_token',
+					value: $cronTokenInput.val()
 				}
 			];
 
