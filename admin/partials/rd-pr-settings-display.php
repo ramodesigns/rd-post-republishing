@@ -192,6 +192,19 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 						</span>
 					</div>
 				</div>
+
+				<!-- Access Token Display -->
+				<div id="rd-pr-at-display-container" class="rd-pr-field-group" style="display: none;">
+					<label class="rd-pr-field-label" for="rd-pr-at-display">
+						<?php esc_html_e( 'Public Access Token', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<input type="text" id="rd-pr-at-display" class="rd-pr-input" readonly disabled>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'This token is required for public API access when Debug mode is off.', 'rd-post-republishing' ); ?>
+						</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

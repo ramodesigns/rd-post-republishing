@@ -22,6 +22,8 @@
 		var $cronTokenInput = $('#rd-pr-cron-token');
 		var $generateTokenButton = $('#rd-pr-generate-token');
 		var $atActiveToggle = $('#rd-pr-at-active');
+		var $atDisplayContainer = $('#rd-pr-at-display-container');
+		var $atDisplayInput = $('#rd-pr-at-display');
 		var $form = $('#rd-pr-settings-form');
 		var $submitGroup = $('.rd-pr-submit-group');
 
@@ -173,6 +175,13 @@
 			// Set Access Token active toggle
 			var atActive = prefLookup.at_active !== undefined ? prefLookup.at_active : defaults.at_active;
 			$atActiveToggle.prop('checked', atActive === 'active');
+			$atDisplayInput.val(cronToken);
+
+			if (atActive === 'active') {
+				$atDisplayContainer.show();
+			} else {
+				$atDisplayContainer.hide();
+			}
 
 			// Update field states after populating
 			toggleFieldsState();
@@ -258,6 +267,45 @@
 		$startTime.on('change', validateTimeRange);
 		$endTime.on('change', validateTimeRange);
 
+		// Access Token toggle change handler (save immediately)
+		$atActiveToggle.on('change', function() {
+			var isActive = $(this).is(':checked');
+			var statusValue = isActive ? 'active' : 'inactive';
+
+			if (isActive) {
+				$atDisplayContainer.show();
+			} else {
+				$atDisplayContainer.hide();
+			}
+
+			$.ajax({
+				url: rdPrSettings.restUrl + '/update',
+				method: 'POST',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				data: JSON.stringify({
+					preferences: [
+						{
+							key: 'at_active',
+							value: statusValue
+						}
+					]
+				}),
+				contentType: 'application/json',
+				success: function(response) {
+					if (response.success) {
+						showSuccessMessage('Access Token status updated.');
+					} else {
+						showValidationError('Failed to update Access Token status.');
+					}
+				},
+				error: function() {
+					showValidationError('Failed to update Access Token status.');
+				}
+			});
+		});
+
 		// Generate Token button handler
 		$generateTokenButton.on('click', function() {
 			var $btn = $(this);
@@ -273,6 +321,7 @@
 				success: function(response) {
 					if (response.success && response.token) {
 						$cronTokenInput.val(response.token);
+						$atDisplayInput.val(response.token);
 						showSuccessMessage('New token generated. Don\'t forget to Save settings.');
 					} else {
 						showValidationError('Failed to generate token.');
