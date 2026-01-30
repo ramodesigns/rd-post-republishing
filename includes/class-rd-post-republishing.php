@@ -78,7 +78,21 @@ class Rd_Post_Republishing {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		$this->define_cron_hooks();
 
+	}
+
+	/**
+	 * Register all of the hooks related to the cron functionality
+	 * of the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function define_cron_hooks() {
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'src/services/Cron_Service.php';
+		$cron_service = new Cron_Service();
+		$this->loader->add_action( Cron_Service::CRON_HOOK, $cron_service, 'handle_cron_event' );
 	}
 
 	/**

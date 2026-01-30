@@ -172,6 +172,11 @@ class Preferences_Controller
 
             $result = $this->preferences_service->update_preferences($preferences);
 
+            // After updating preferences, manage the cron job
+            require_once plugin_dir_path( dirname( __FILE__ ) ) . 'services/Cron_Service.php';
+            $cron_service = new Cron_Service();
+            $cron_service->manage_cron();
+
             $successful_count = count($result['successful']);
             $failed_count = count($result['failed']);
             $total = $result['total'];
