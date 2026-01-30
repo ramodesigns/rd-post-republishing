@@ -20,3 +20,6 @@ new Calculation_Controller();
 
 require_once plugin_dir_path( __FILE__ ) . 'History_Controller.php';
 new History_Controller($auth_helper);
+
+require_once plugin_dir_path( __FILE__ ) . 'Authentication_Controller.php';
+new Authentication_Controller($auth_helper);

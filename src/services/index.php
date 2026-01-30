@@ -21,3 +21,6 @@ $cron_service->manage_cron();
 
 require_once plugin_dir_path( __FILE__ ) . 'History_Service.php';
 new History_Service();
+
+require_once plugin_dir_path( __FILE__ ) . 'Authentication_Service.php';
+new Authentication_Service();
