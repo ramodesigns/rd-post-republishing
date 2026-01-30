@@ -21,6 +21,7 @@
 		var $debugTimestampContainer = $('#rd-pr-debug-timestamp-container');
 		var $cronTokenInput = $('#rd-pr-cron-token');
 		var $generateTokenButton = $('#rd-pr-generate-token');
+		var $atActiveToggle = $('#rd-pr-at-active');
 		var $form = $('#rd-pr-settings-form');
 		var $submitGroup = $('.rd-pr-submit-group');
 
@@ -106,7 +107,8 @@
 			publish_start_time: '9',
 			publish_end_time: '17',
 			debug_timestamp: '',
-			cron_secret_token: ''
+			cron_secret_token: '',
+			at_active: 'inactive'
 		};
 
 		/**
@@ -167,6 +169,10 @@
 			// Set Cron Secret Token
 			var cronToken = prefLookup.cron_secret_token !== undefined ? prefLookup.cron_secret_token : defaults.cron_secret_token;
 			$cronTokenInput.val(cronToken);
+			
+			// Set Access Token active toggle
+			var atActive = prefLookup.at_active !== undefined ? prefLookup.at_active : defaults.at_active;
+			$atActiveToggle.prop('checked', atActive === 'active');
 
 			// Update field states after populating
 			toggleFieldsState();
@@ -326,6 +332,10 @@
 				{
 					key: 'cron_secret_token',
 					value: $cronTokenInput.val()
+				},
+				{
+					key: 'at_active',
+					value: $atActiveToggle.is(':checked') ? 'active' : 'inactive'
 				}
 			];
 

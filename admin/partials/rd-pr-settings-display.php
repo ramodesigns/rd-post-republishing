@@ -176,6 +176,22 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 		<div id="rd-pr-tab-access-token" class="rd-pr-tab-content">
 			<div class="rd-pr-form">
 				<h2><?php esc_html_e( 'Public Access Token', 'rd-post-republishing' ); ?></h2>
+
+				<!-- Activate Access Token Toggle -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-at-active">
+						<?php esc_html_e( 'Activate Access Token', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<label class="rd-pr-toggle">
+							<input type="checkbox" id="rd-pr-at-active" name="at_active" value="1">
+							<span class="rd-pr-toggle-slider"></span>
+						</label>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Enable or disable the use of the public access token.', 'rd-post-republishing' ); ?>
+						</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
