@@ -31,6 +31,39 @@
 		var $endTimeGroup = $endTime.closest('.rd-pr-field-group');
 
 		/**
+		 * Tab Switching Logic
+		 */
+		$('.rd-pr-nav-tab-wrapper a').on('click', function(e) {
+			e.preventDefault();
+			var tabId = $(this).data('tab');
+
+			// Update tabs
+			$('.rd-pr-nav-tab-wrapper a').removeClass('nav-tab-active');
+			$(this).addClass('nav-tab-active');
+
+			// Update content
+			$('.rd-pr-tab-content').removeClass('rd-pr-tab-active');
+			$('#rd-pr-tab-' + tabId).addClass('rd-pr-tab-active');
+
+			// Update URL hash without jumping
+			if (history.pushState) {
+				history.pushState(null, null, '#' + tabId);
+			} else {
+				location.hash = '#' + tabId;
+			}
+		});
+
+		// Handle direct link to tab via hash
+		var hash = window.location.hash;
+		if (hash) {
+			var tabName = hash.substring(1);
+			var $targetTab = $('.rd-pr-nav-tab-wrapper a[data-tab="' + tabName + '"]');
+			if ($targetTab.length) {
+				$targetTab.trigger('click');
+			}
+		}
+
+		/**
 		 * Fetch preferences from the API
 		 */
 		function fetchPreferences() {

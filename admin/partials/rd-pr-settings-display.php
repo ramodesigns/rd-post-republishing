@@ -28,145 +28,156 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 ?>
 
 <div class="wrap rd-pr-settings-wrap">
-	<h1><?php esc_html_e( 'Settings', 'rd-post-republishing' ); ?></h1>
+	<h2 class="nav-tab-wrapper rd-pr-nav-tab-wrapper">
+		<a href="#preferences" class="nav-tab nav-tab-active" data-tab="preferences"><?php esc_html_e( 'Preferences', 'rd-post-republishing' ); ?></a>
+		<a href="#access-token" class="nav-tab" data-tab="access-token"><?php esc_html_e( 'Access Token', 'rd-post-republishing' ); ?></a>
+	</h2>
 
 	<div class="rd-pr-settings-content">
-		<form id="rd-pr-settings-form" class="rd-pr-form">
+		<div id="rd-pr-tab-preferences" class="rd-pr-tab-content rd-pr-tab-active">
+			<form id="rd-pr-settings-form" class="rd-pr-form">
 
-			<!-- Active Checkbox -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-active">
-					<?php esc_html_e( 'Active', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<label class="rd-pr-toggle">
-						<input type="checkbox" id="rd-pr-active" name="active" value="1">
-						<span class="rd-pr-toggle-slider"></span>
+				<!-- Active Checkbox -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-active">
+						<?php esc_html_e( 'Active', 'rd-post-republishing' ); ?>
 					</label>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Enable or disable automatic post republishing', 'rd-post-republishing' ); ?>
-					</span>
-				</div>
-			</div>
-
-			<!-- WP Cron Checkbox -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-wp-cron">
-					<?php esc_html_e( 'WP Cron', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<label class="rd-pr-toggle">
-						<input type="checkbox" id="rd-pr-wp-cron" name="wp_cron" value="1">
-						<span class="rd-pr-toggle-slider"></span>
-					</label>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Disable WP Cron if you are using an alternative method to trigger the republishing process (e.g., server cron job or external scheduler).', 'rd-post-republishing' ); ?>
-					</span>
-				</div>
-			</div>
-
-			<!-- Posts Per Day Slider -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-posts-per-day">
-					<?php esc_html_e( 'Posts Per Day', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<div class="rd-pr-slider-container">
-						<input type="range" id="rd-pr-posts-per-day" name="posts_per_day" min="1" max="10" value="1" class="rd-pr-slider">
-						<output id="rd-pr-posts-per-day-value" class="rd-pr-slider-value">1</output>
-					</div>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Number of posts to republish per day (1-10)', 'rd-post-republishing' ); ?>
-					</span>
-				</div>
-			</div>
-
-			<!-- Publish Start Time Dropdown -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-start-time">
-					<?php esc_html_e( 'Publish Start Time', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<select id="rd-pr-start-time" name="publish_start_time" class="rd-pr-select">
-						<?php foreach ( $time_options as $value => $label ) : ?>
-							<option value="<?php echo esc_attr( $value ); ?>">
-								<?php echo esc_html( $label ); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Earliest time of day to republish posts', 'rd-post-republishing' ); ?>
-					</span>
-				</div>
-			</div>
-
-			<!-- Publish End Time Dropdown -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-end-time">
-					<?php esc_html_e( 'Publish End Time', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<select id="rd-pr-end-time" name="publish_end_time" class="rd-pr-select">
-						<?php foreach ( $time_options as $value => $label ) : ?>
-							<option value="<?php echo esc_attr( $value ); ?>">
-								<?php echo esc_html( $label ); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Latest time of day to republish posts', 'rd-post-republishing' ); ?>
-					</span>
-				</div>
-			</div>
-
-			<!-- Debug Toggle -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-debug">
-					<?php esc_html_e( 'Debug', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<label class="rd-pr-toggle">
-						<input type="checkbox" id="rd-pr-debug" name="debug" value="1">
-						<span class="rd-pr-toggle-slider"></span>
-					</label>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Enable debug mode (automatically expires after 12 hours).', 'rd-post-republishing' ); ?>
-					</span>
-					<div id="rd-pr-debug-timestamp-container" class="rd-pr-debug-timestamp" style="display: none;">
-						<strong><?php esc_html_e( 'Debug Expires:', 'rd-post-republishing' ); ?></strong>
-						<span id="rd-pr-debug-timestamp-value"></span>
+					<div class="rd-pr-field-input">
+						<label class="rd-pr-toggle">
+							<input type="checkbox" id="rd-pr-active" name="active" value="1">
+							<span class="rd-pr-toggle-slider"></span>
+						</label>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Enable or disable automatic post republishing', 'rd-post-republishing' ); ?>
+						</span>
 					</div>
 				</div>
-			</div>
 
-			<!-- Cron Secret Token -->
-			<div class="rd-pr-field-group">
-				<label class="rd-pr-field-label" for="rd-pr-cron-token">
-					<?php esc_html_e( 'Cron Secret Token', 'rd-post-republishing' ); ?>
-				</label>
-				<div class="rd-pr-field-input">
-					<div class="rd-pr-token-container">
-						<input type="text" id="rd-pr-cron-token" name="cron_secret_token" class="rd-pr-input" readonly>
-						<button type="button" id="rd-pr-generate-token" class="rd-pr-button">
-							<?php esc_html_e( 'Generate Token', 'rd-post-republishing' ); ?>
-						</button>
+				<!-- WP Cron Checkbox -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-wp-cron">
+						<?php esc_html_e( 'WP Cron', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<label class="rd-pr-toggle">
+							<input type="checkbox" id="rd-pr-wp-cron" name="wp_cron" value="1">
+							<span class="rd-pr-toggle-slider"></span>
+						</label>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Disable WP Cron if you are using an alternative method to trigger the republishing process (e.g., server cron job or external scheduler).', 'rd-post-republishing' ); ?>
+						</span>
 					</div>
-					<span class="rd-pr-field-description">
-						<?php esc_html_e( 'Use this token to authenticate external cron jobs. Append ', 'rd-post-republishing' ); ?>
-						<code>?token=YOUR_TOKEN</code>
-						<?php esc_html_e( ' to your public endpoint URLs.', 'rd-post-republishing' ); ?>
-					</span>
 				</div>
-			</div>
 
-			<!-- Save Button -->
-			<div class="rd-pr-field-group rd-pr-submit-group">
-				<button type="submit" id="rd-pr-save-settings" class="rd-pr-button rd-pr-button-primary">
-					<?php esc_html_e( 'Save', 'rd-post-republishing' ); ?>
-				</button>
-			</div>
+				<!-- Posts Per Day Slider -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-posts-per-day">
+						<?php esc_html_e( 'Posts Per Day', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<div class="rd-pr-slider-container">
+							<input type="range" id="rd-pr-posts-per-day" name="posts_per_day" min="1" max="10" value="1" class="rd-pr-slider">
+							<output id="rd-pr-posts-per-day-value" class="rd-pr-slider-value">1</output>
+						</div>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Number of posts to republish per day (1-10)', 'rd-post-republishing' ); ?>
+						</span>
+					</div>
+				</div>
 
-		</form>
+				<!-- Publish Start Time Dropdown -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-start-time">
+						<?php esc_html_e( 'Publish Start Time', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<select id="rd-pr-start-time" name="publish_start_time" class="rd-pr-select">
+							<?php foreach ( $time_options as $value => $label ) : ?>
+								<option value="<?php echo esc_attr( $value ); ?>">
+									<?php echo esc_html( $label ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Earliest time of day to republish posts', 'rd-post-republishing' ); ?>
+						</span>
+					</div>
+				</div>
+
+				<!-- Publish End Time Dropdown -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-end-time">
+						<?php esc_html_e( 'Publish End Time', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<select id="rd-pr-end-time" name="publish_end_time" class="rd-pr-select">
+							<?php foreach ( $time_options as $value => $label ) : ?>
+								<option value="<?php echo esc_attr( $value ); ?>">
+									<?php echo esc_html( $label ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Latest time of day to republish posts', 'rd-post-republishing' ); ?>
+						</span>
+					</div>
+				</div>
+
+				<!-- Debug Toggle -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-debug">
+						<?php esc_html_e( 'Debug', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<label class="rd-pr-toggle">
+							<input type="checkbox" id="rd-pr-debug" name="debug" value="1">
+							<span class="rd-pr-toggle-slider"></span>
+						</label>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Enable debug mode (automatically expires after 12 hours).', 'rd-post-republishing' ); ?>
+						</span>
+						<div id="rd-pr-debug-timestamp-container" class="rd-pr-debug-timestamp" style="display: none;">
+							<strong><?php esc_html_e( 'Debug Expires:', 'rd-post-republishing' ); ?></strong>
+							<span id="rd-pr-debug-timestamp-value"></span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Cron Secret Token -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-cron-token">
+						<?php esc_html_e( 'Cron Secret Token', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<div class="rd-pr-token-container">
+							<input type="text" id="rd-pr-cron-token" name="cron_secret_token" class="rd-pr-input" readonly>
+							<button type="button" id="rd-pr-generate-token" class="rd-pr-button">
+								<?php esc_html_e( 'Generate Token', 'rd-post-republishing' ); ?>
+							</button>
+						</div>
+						<span class="rd-pr-field-description">
+							<?php esc_html_e( 'Use this token to authenticate external cron jobs. Append ', 'rd-post-republishing' ); ?>
+							<code>?token=YOUR_TOKEN</code>
+							<?php esc_html_e( ' to your public endpoint URLs.', 'rd-post-republishing' ); ?>
+						</span>
+					</div>
+				</div>
+
+				<!-- Save Button -->
+				<div class="rd-pr-field-group rd-pr-submit-group">
+					<button type="submit" id="rd-pr-save-settings" class="rd-pr-button rd-pr-button-primary">
+						<?php esc_html_e( 'Save', 'rd-post-republishing' ); ?>
+					</button>
+				</div>
+
+			</form>
+		</div>
+
+		<div id="rd-pr-tab-access-token" class="rd-pr-tab-content">
+			<div class="rd-pr-form">
+				<h2><?php esc_html_e( 'Public Access Token', 'rd-post-republishing' ); ?></h2>
+			</div>
+		</div>
 	</div>
 
 	<!-- Posting Calendar Panel -->
