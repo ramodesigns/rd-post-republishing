@@ -199,7 +199,12 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 						<?php esc_html_e( 'Public Access Token', 'rd-post-republishing' ); ?>
 					</label>
 					<div class="rd-pr-field-input">
-						<input type="text" id="rd-pr-at-display" class="rd-pr-input" readonly disabled>
+						<div class="rd-pr-token-container">
+							<input type="text" id="rd-pr-at-display" class="rd-pr-input" readonly disabled>
+							<button type="button" id="rd-pr-generate-at-token" class="rd-pr-button">
+								<?php esc_html_e( 'Generate', 'rd-post-republishing' ); ?>
+							</button>
+						</div>
 						<span class="rd-pr-field-description">
 							<?php esc_html_e( 'This token is required for public API access when Debug mode is off.', 'rd-post-republishing' ); ?>
 						</span>

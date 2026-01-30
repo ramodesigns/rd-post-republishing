@@ -24,6 +24,7 @@
 		var $atActiveToggle = $('#rd-pr-at-active');
 		var $atDisplayContainer = $('#rd-pr-at-display-container');
 		var $atDisplayInput = $('#rd-pr-at-display');
+		var $generateAtTokenButton = $('#rd-pr-generate-at-token');
 		var $form = $('#rd-pr-settings-form');
 		var $submitGroup = $('.rd-pr-submit-group');
 
@@ -308,7 +309,26 @@
 
 		// Generate Token button handler
 		$generateTokenButton.on('click', function() {
-			var $btn = $(this);
+			generateNewToken($(this), function(token) {
+				$cronTokenInput.val(token);
+				$atDisplayInput.val(token);
+				showSuccessMessage('New token generated. Don\'t forget to Save settings.');
+			});
+		});
+
+		// Generate Access Token button handler
+		$generateAtTokenButton.on('click', function() {
+			generateNewToken($(this), function(token) {
+				$atDisplayInput.val(token);
+				$cronTokenInput.val(token);
+				showSuccessMessage('New access token generated. Don\'t forget to Save settings.');
+			});
+		});
+
+		/**
+		 * Helper to generate a new token via API
+		 */
+		function generateNewToken($btn, successCallback) {
 			var originalText = $btn.text();
 			$btn.prop('disabled', true).text('Generating...');
 
@@ -320,9 +340,7 @@
 				},
 				success: function(response) {
 					if (response.success && response.token) {
-						$cronTokenInput.val(response.token);
-						$atDisplayInput.val(response.token);
-						showSuccessMessage('New token generated. Don\'t forget to Save settings.');
+						successCallback(response.token);
 					} else {
 						showValidationError('Failed to generate token.');
 					}
@@ -334,7 +352,7 @@
 					$btn.prop('disabled', false).text(originalText);
 				}
 			});
-		});
+		}
 
 		// Initialize state on page load
 		toggleFieldsState();
