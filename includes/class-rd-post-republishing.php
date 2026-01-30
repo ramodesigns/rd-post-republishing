@@ -79,7 +79,24 @@ class Rd_Post_Republishing {
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		$this->define_cron_hooks();
+		$this->check_for_updates();
 
+	}
+
+	/**
+	 * Check if the plugin has been updated and run necessary tasks.
+	 *
+	 * @since    1.0.1
+	 * @access   private
+	 */
+	private function check_for_updates() {
+		$installed_version = get_option( 'rd_pr_version' );
+
+		if ( version_compare( $installed_version, $this->version, '<' ) ) {
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-rd-post-republishing-activator.php';
+			Rd_Post_Republishing_Activator::activate();
+			update_option( 'rd_pr_version', $this->version );
+		}
 	}
 
 	/**

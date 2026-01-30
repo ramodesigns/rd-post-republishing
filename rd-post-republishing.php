@@ -16,7 +16,7 @@
  * Plugin Name:       RD - Post Republishing
  * Plugin URI:        https://www.ramodesigns.co.uk
  * Description:       Ramo Designs - Post Republishing Tool
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Paul Ramotowski
  * Author URI:        https://www.paulramotowski.com/
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'RD_POST_REPUBLISHING_VERSION', '1.0.0' );
+define( 'RD_POST_REPUBLISHING_VERSION', '1.0.1' );
 
 /**
  * The code that runs during plugin activation.

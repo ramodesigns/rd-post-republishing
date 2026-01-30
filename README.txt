@@ -4,7 +4,7 @@ Donate link: https://www.paulramotowski.com/
 Tags: republish, posts, automation, seo
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,10 @@ Note: Public endpoints (`*public`) are restricted by default. They can be access
 2. **Cron Secret Token**: Generate a secret token in the plugin settings and append it to your request as a query parameter (e.g., `?token=YOUR_TOKEN`). This is the recommended method for automated server-side cron jobs.
 
 == Changelog ==
+
+= 1.0.1 =
+* Updated database schema to support longer access tokens.
+* Improved update process to handle manual "override" installations.
 
 = 1.0.0 =
 * Initial release.
