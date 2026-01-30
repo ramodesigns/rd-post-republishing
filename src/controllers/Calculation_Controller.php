@@ -27,10 +27,20 @@ class Calculation_Controller
     private $calculation_service;
 
     /**
-     * Constructor
+     * Authorisation helper instance
+     *
+     * @var Authorisation_Helper
      */
-    public function __construct()
+    private $authorisation_helper;
+
+    /**
+     * Constructor
+     *
+     * @param Authorisation_Helper $authorisation_helper
+     */
+    public function __construct($authorisation_helper)
     {
+        $this->authorisation_helper = $authorisation_helper;
         $this->calculation_service = new Calculation_Service();
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
@@ -44,30 +54,28 @@ class Calculation_Controller
         register_rest_route($this->namespace, '/calculate', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_calculate_request'),
-            //'permission_callback' => array($this, 'check_authentication'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_authentication'),
             'args' => $this->get_calculate_endpoint_args()
         ));
 
         register_rest_route($this->namespace, '/operations', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_operations_request'),
-            //'permission_callback' => array($this, 'check_authentication'),
-            'permission_callback' => '__return_true'
+            'permission_callback' => array($this, 'check_authentication')
         ));
 
         // Public endpoints
         register_rest_route($this->namespace, '/calculatepublic', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_calculate_request'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_debug_authorization'),
             'args' => $this->get_calculate_endpoint_args()
         ));
 
         register_rest_route($this->namespace, '/operationspublic', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array($this, 'handle_operations_request'),
-            'permission_callback' => '__return_true'
+            'permission_callback' => array($this, 'check_debug_authorization')
         ));
 
         register_rest_route($this->namespace, '/posttimes', array(
@@ -80,7 +88,7 @@ class Calculation_Controller
         register_rest_route($this->namespace, '/posttimespublic', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'handle_posttimes_request'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_debug_authorization'),
             'args' => $this->get_posttimes_endpoint_args()
         ));
     }
@@ -152,6 +160,25 @@ class Calculation_Controller
         }
 
         return true;
+    }
+
+    /**
+     * Permission callback for public endpoints
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_debug_authorization($request)
+    {
+        if ($this->authorisation_helper->is_debug_authorized()) {
+            return true;
+        }
+
+        return new WP_Error(
+            'rest_forbidden',
+            __('Public access is restricted. Please enable Debug mode in settings.'),
+            array('status' => 403)
+        );
     }
 
     /**

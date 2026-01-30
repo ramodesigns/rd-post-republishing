@@ -27,11 +27,14 @@ class Authentication_Service
 
     /**
      * Constructor
+     *
+     * @param Preferences_Service $preferences_service
+     * @param Authorisation_Helper $authorisation_helper
      */
-    public function __construct()
+    public function __construct($preferences_service, $authorisation_helper)
     {
-        $this->preferences_service = new Preferences_Service();
-        $this->authorisation_helper = new Authorisation_Helper($this->preferences_service);
+        $this->preferences_service = $preferences_service;
+        $this->authorisation_helper = $authorisation_helper;
     }
 
     /**

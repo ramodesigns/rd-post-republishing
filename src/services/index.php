@@ -22,5 +22,8 @@ $cron_service->manage_cron();
 require_once plugin_dir_path( __FILE__ ) . 'History_Service.php';
 new History_Service();
 
+$preferences_service_shared = new Preferences_Service();
+$authorisation_helper_shared = new Authorisation_Helper($preferences_service_shared);
+
 require_once plugin_dir_path( __FILE__ ) . 'Authentication_Service.php';
-new Authentication_Service();
+new Authentication_Service($preferences_service_shared, $authorisation_helper_shared);

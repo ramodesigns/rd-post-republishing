@@ -42,7 +42,8 @@ class Authentication_Controller
     public function __construct($authorisation_helper)
     {
         $this->authorisation_helper = $authorisation_helper;
-        $this->authentication_service = new Authentication_Service();
+        $preferences_service = new Preferences_Service();
+        $this->authentication_service = new Authentication_Service($preferences_service, $authorisation_helper);
         add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
 
