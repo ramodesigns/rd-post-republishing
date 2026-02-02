@@ -46,7 +46,7 @@ class Process_Service
     {
         $this->preferences_service = new Preferences_Service();
         $this->logging_service = new Logging_Service();
-        $this->calculation_service = new Calculation_Service();
+        $this->calculation_service = new Calculation_Service($this->preferences_service);
         $this->republish_service = new Republish_Service();
     }
 

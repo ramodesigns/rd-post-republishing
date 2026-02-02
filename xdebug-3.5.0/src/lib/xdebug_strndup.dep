@@ -1,0 +1,4 @@
+src/lib/xdebug_strndup.lo: \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/xdebug_strndup.c \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/mm.h \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/xdebug_strndup.h

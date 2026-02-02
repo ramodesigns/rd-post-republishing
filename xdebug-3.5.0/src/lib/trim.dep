@@ -1,0 +1,3 @@
+src/lib/trim.lo: \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/trim.c \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/mm.h

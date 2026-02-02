@@ -1,0 +1,4 @@
+src/lib/hash.lo: \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/hash.c \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/hash.h \
+  /Users/paulramotowski/Documents/GitHub/rd-post-republishing/xdebug-3.5.0/src/lib/llist.h

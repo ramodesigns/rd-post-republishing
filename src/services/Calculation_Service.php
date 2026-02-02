@@ -24,11 +24,22 @@ class Calculation_Service
     private $preferences_service;
 
     /**
-     * Constructor
+     * Calculation helper instance
+     *
+     * @var Calculation_Helper
      */
-    public function __construct()
+    private $calculation_helper;
+
+    /**
+     * Constructor
+     *
+     * @param Preferences_Service|null $preferences_service Optional service for dependency injection
+     * @param Calculation_Helper|null $calculation_helper Optional helper for dependency injection
+     */
+    public function __construct($preferences_service = null, $calculation_helper = null)
     {
-        $this->preferences_service = new Preferences_Service();
+        $this->preferences_service = $preferences_service ?: new Preferences_Service();
+        $this->calculation_helper = $calculation_helper ?: new Calculation_Helper();
     }
 
     /**
@@ -40,7 +51,7 @@ class Calculation_Service
      */
     public function calculate($operation, $values)
     {
-        $validation_error = $this->validate_calculation($operation, $values);
+        $validation_error = $this->calculation_helper->validate_calculation($operation, $values);
 
         if ($validation_error !== null) {
             return array(
@@ -120,7 +131,7 @@ class Calculation_Service
      */
     public function get_post_times($date)
     {
-        $errors = $this->validate_date($date);
+        $errors = $this->calculation_helper->validate_date($date);
 
         if (!empty($errors)) {
             return array(
@@ -134,8 +145,16 @@ class Calculation_Service
         $publish_end_time = (int) $this->get_preference_value('publish_end_time');
         $posts_per_day = (int) $this->get_preference_value('posts_per_day');
 
+        // Validation: ensure we have a valid number of posts and time range
+        if ($posts_per_day <= 0 || $publish_end_time <= $publish_start_time) {
+            return array(
+                'success' => false,
+                'errors' => array('Invalid publishing configuration')
+            );
+        }
+
         // Generate deterministic times based on the date
-        $times = $this->generate_post_times($date, $publish_start_time, $publish_end_time, $posts_per_day);
+        $times = $this->calculation_helper->generate_post_times($date, $publish_start_time, $publish_end_time, $posts_per_day);
 
         // Split times into previous and future based on current date/time
         $categorized_times = $this->categorize_times($date, $times);
@@ -195,67 +214,6 @@ class Calculation_Service
     }
 
     /**
-     * Generate deterministic post times based on the date and site domain
-     *
-     * @param string $date The date string used as seed
-     * @param int $start_hour The start hour (e.g., 9 for 9am)
-     * @param int $end_hour The end hour (e.g., 17 for 5pm)
-     * @param int $posts_per_day Number of times to generate
-     * @param string|null $domain Optional domain override for testing
-     * @return array Array of times in hh:mm format
-     */
-    private function generate_post_times($date, $start_hour, $end_hour, $posts_per_day, $domain = null)
-    {
-        $times = array();
-
-        // Get site domain for unique seed per website
-        if ($domain === null) {
-            $domain = parse_url(home_url(), PHP_URL_HOST);
-        }
-
-        // Convert hours to minutes from midnight
-        $start_minutes = $start_hour * 60;
-        $end_minutes = $end_hour * 60;
-        $total_minutes = $end_minutes - $start_minutes;
-
-        // Calculate segment size for each post
-        $segment_size = $total_minutes / $posts_per_day;
-
-        for ($i = 0; $i < $posts_per_day; $i++) {
-            // Generate a deterministic offset within this segment using domain, date and index
-            $segment_seed = crc32($domain . '_' . $date . '_' . $i);
-            $offset_within_segment = abs($segment_seed) % (int) $segment_size;
-
-            // Calculate the time in minutes from midnight
-            $time_in_minutes = $start_minutes + ($i * $segment_size) + $offset_within_segment;
-
-            // Convert to hours and minutes
-            $hours = (int) floor($time_in_minutes / 60);
-            $minutes = (int) ($time_in_minutes % 60);
-
-            // Format as hh:mm
-            $times[] = sprintf('%02d:%02d', $hours, $minutes);
-        }
-
-        return $times;
-    }
-
-    /**
-     * Generate post times with a specific domain (for testing purposes)
-     *
-     * @param string $date The date in dd-mm-yyyy format
-     * @param string $domain The domain to use for the seed
-     * @param int $start_hour The start hour
-     * @param int $end_hour The end hour
-     * @param int $posts_per_day Number of posts per day
-     * @return array Array of times in hh:mm format
-     */
-    public function generate_post_times_for_domain($date, $domain, $start_hour = 9, $end_hour = 17, $posts_per_day = 4)
-    {
-        return $this->generate_post_times($date, $start_hour, $end_hour, $posts_per_day, $domain);
-    }
-
-    /**
      * Get a preference value by key
      *
      * @param string $key The preference key
@@ -265,84 +223,5 @@ class Calculation_Service
     {
         $preference = $this->preferences_service->get_preference_by_key($key);
         return $preference !== null ? $preference['value'] : null;
-    }
-
-    /**
-     * Validate date input
-     *
-     * @param mixed $date The date to validate
-     * @return array Array of error messages (empty if valid)
-     */
-    private function validate_date($date)
-    {
-        $errors = array();
-
-        if ($date === null || $date === '') {
-            $errors[] = 'date is missing';
-            return $errors;
-        }
-
-        if (!is_string($date)) {
-            $errors[] = 'date is invalid';
-            return $errors;
-        }
-
-        // Check format dd-mm-yyyy
-        if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $date)) {
-            $errors[] = 'date is invalid';
-            return $errors;
-        }
-
-        // Parse and validate the date components
-        $parts = explode('-', $date);
-        $day = (int) $parts[0];
-        $month = (int) $parts[1];
-        $year = (int) $parts[2];
-
-        if (!checkdate($month, $day, $year)) {
-            $errors[] = 'date is invalid';
-            return $errors;
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Validate calculation inputs
-     *
-     * @param mixed $operation The operation to validate
-     * @param mixed $values The values to validate
-     * @return string|null Error message or null if valid
-     */
-    private function validate_calculation($operation, $values)
-    {
-        if ($operation === null || $operation === '') {
-            return 'Operation is required';
-        }
-
-        if (!is_string($operation)) {
-            return 'Operation must be a string';
-        }
-
-        $valid_operations = array('sum', 'average', 'min', 'max', 'count');
-        if (!in_array($operation, $valid_operations)) {
-            return 'Invalid operation. Valid operations are: ' . implode(', ', $valid_operations);
-        }
-
-        if ($values === null) {
-            return 'Values are required';
-        }
-
-        if (!is_array($values)) {
-            return 'Values must be an array';
-        }
-
-        foreach ($values as $index => $value) {
-            if (!is_numeric($value)) {
-                return 'Value at index ' . $index . ' must be numeric';
-            }
-        }
-
-        return null;
     }
 }
