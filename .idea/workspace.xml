@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bf21e13f-bd0a-463f-ac8b-75611608cb46" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/rd-post-republishing.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/rd-post-republishing.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/Calculation_Service.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/Calculation_Service.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/services/Process_Service.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/Process_Service.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/src/helpers/CalculationHelperTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/src/helpers/CalculationHelperTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,7 +118,7 @@
       <workItem from="1769446342934" duration="3444000" />
       <workItem from="1769551569097" duration="3857000" />
       <workItem from="1769637408890" duration="1114000" />
-      <workItem from="1769868478254" duration="12997000" />
+      <workItem from="1769868478254" duration="13829000" />
     </task>
     <servers />
   </component>

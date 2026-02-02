@@ -32,7 +32,7 @@ class CalculationHelperTest extends TestCase
         $this->assertEquals(['date is missing'], $helper->validate_date(''));
         $this->assertEquals(['date is invalid'], $helper->validate_date(123));
         $this->assertEquals(['date is invalid'], $helper->validate_date('2024-01-01')); // wrong format
-        $this->assertEquals(['date is invalid'], $helper->validate_date('31-04-2024')); // April 31st
+        $this->assertEquals(['date is invalid'], $helper->validate_date('31-04-2024')); // April 31st (not real)
         $this->assertEmpty($helper->validate_date('01-01-2024'));
     }
 
