@@ -53,7 +53,7 @@ class CalculationHelperTest extends TestCase
     }
 
     /**
-     * Test deterministic time generation
+     * Test deterministic time generation logic
      */
     public function test_generate_post_times()
     {
