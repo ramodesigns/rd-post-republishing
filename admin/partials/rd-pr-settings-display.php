@@ -229,6 +229,9 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 							<button type="button" id="rd-pr-register-license" class="rd-pr-button rd-pr-button-primary">
 								<?php esc_html_e( 'Register', 'rd-post-republishing' ); ?>
 							</button>
+							<button type="button" id="rd-pr-clear-license" class="rd-pr-button" style="display: none;">
+								<?php esc_html_e( 'Clear', 'rd-post-republishing' ); ?>
+							</button>
 						</div>
 					</div>
 				</div>

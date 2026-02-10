@@ -25,6 +25,10 @@
 		var $atDisplayContainer = $('#rd-pr-at-display-container');
 		var $atDisplayInput = $('#rd-pr-at-display');
 		var $generateAtTokenButton = $('#rd-pr-generate-at-token');
+		var $licenseKeyInput = $('#rd-pr-license-key');
+		var $registerLicenseButton = $('#rd-pr-register-license');
+		var $clearLicenseButton = $('#rd-pr-clear-license');
+		var $licenseStatusInput = $('#rd-pr-license-status');
 		var $form = $('#rd-pr-settings-form');
 		var $submitGroup = $('.rd-pr-submit-group');
 
@@ -268,6 +272,137 @@
 		$startTime.on('change', validateTimeRange);
 		$endTime.on('change', validateTimeRange);
 
+		/**
+		 * Update license UI state based on registration status
+		 */
+		function updateLicenseUI(isRegistered, licenseKey) {
+			if (isRegistered) {
+				$licenseStatusInput.val('Registered');
+				$registerLicenseButton.prop('disabled', true);
+				$clearLicenseButton.show();
+				if (licenseKey) {
+					$licenseKeyInput.val(licenseKey);
+				}
+			} else {
+				$licenseStatusInput.val('Not Registered');
+				$registerLicenseButton.prop('disabled', false);
+				$clearLicenseButton.hide();
+				$licenseKeyInput.val('');
+			}
+		}
+
+		/**
+		 * Fetch license status from the API
+		 */
+		function fetchLicenseStatus() {
+			$.ajax({
+				url: rdPrSettings.licenseUrl + '/retrieve',
+				method: 'GET',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				success: function(response) {
+					if (response.success && response.license) {
+						updateLicenseUI(true, response.license);
+					} else {
+						updateLicenseUI(false);
+					}
+				},
+				error: function(xhr, status, error) {
+					console.error('Failed to fetch license status:', error);
+					updateLicenseUI(false);
+				}
+			});
+		}
+
+		// Register License button handler
+		$registerLicenseButton.on('click', function() {
+			var licenseKey = $licenseKeyInput.val();
+			if (!licenseKey) {
+				showValidationError('Please enter a license key.');
+				return;
+			}
+
+			// Alphanumeric validation (matching backend)
+			if (!/^[a-z0-9]+$/i.test(licenseKey)) {
+				showValidationError('License key must be alphanumeric.');
+				return;
+			}
+
+			if (licenseKey.length > 50) {
+				showValidationError('License key cannot exceed 50 characters.');
+				return;
+			}
+
+			var $btn = $(this);
+			var originalText = $btn.text();
+			$btn.prop('disabled', true).text('Registering...');
+
+			$.ajax({
+				url: rdPrSettings.licenseUrl + '/save',
+				method: 'POST',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				contentType: 'application/json',
+				data: JSON.stringify({ key: licenseKey }),
+				success: function(response) {
+					if (response.success) {
+						showSuccessMessage('License key registered successfully.');
+						updateLicenseUI(true, licenseKey);
+					} else {
+						showValidationError(response.message || 'Failed to register license key.');
+						$btn.prop('disabled', false).text(originalText);
+					}
+				},
+				error: function(xhr) {
+					var message = 'Failed to register license key.';
+					if (xhr.responseJSON && xhr.responseJSON.message) {
+						message = xhr.responseJSON.message;
+					}
+					showValidationError(message);
+					$btn.prop('disabled', false).text(originalText);
+				}
+			});
+		});
+
+		// Clear License button handler
+		$clearLicenseButton.on('click', function() {
+			if (!confirm('Are you sure you want to clear the license?')) {
+				return;
+			}
+
+			var $btn = $(this);
+			var originalText = $btn.text();
+			$btn.prop('disabled', true).text('Clearing...');
+
+			$.ajax({
+				url: rdPrSettings.licenseUrl + '/clear',
+				method: 'POST',
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', rdPrSettings.nonce);
+				},
+				success: function(response) {
+					if (response.success) {
+						showSuccessMessage('License key cleared successfully.');
+						updateLicenseUI(false);
+					} else {
+						showValidationError(response.message || 'Failed to clear license key.');
+					}
+				},
+				error: function(xhr) {
+					var message = 'Failed to clear license key.';
+					if (xhr.responseJSON && xhr.responseJSON.message) {
+						message = xhr.responseJSON.message;
+					}
+					showValidationError(message);
+				},
+				complete: function() {
+					$btn.prop('disabled', false).text(originalText);
+				}
+			});
+		});
+
 		// Access Token toggle change handler (save immediately)
 		$atActiveToggle.on('change', function() {
 			var isActive = $(this).is(':checked');
@@ -308,16 +443,6 @@
 			});
 		});
 
-		// Register License button handler (placeholder)
-		$('#rd-pr-register-license').on('click', function() {
-			var licenseKey = $('#rd-pr-license-key').val();
-			if (!licenseKey) {
-				showValidationError('Please enter a license key.');
-				return;
-			}
-			// For now, just show a message or do nothing as requested by the task
-			showSuccessMessage('License registration attempted for key: ' + licenseKey);
-		});
 
 		// Generate Token button handler
 		$generateTokenButton.on('click', function() {
@@ -392,6 +517,9 @@
 
 		// Fetch preferences from API on page load
 		fetchPreferences();
+
+		// Fetch license status on page load
+		fetchLicenseStatus();
 
 		/**
 		 * Save preferences to the API

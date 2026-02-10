@@ -62,4 +62,14 @@ class License_Service
         $result = $this->preferences_service->update_preferences($payload);
         return !empty($result['successful']);
     }
+
+    /**
+     * Clear the license key
+     *
+     * @return bool True on success, false on failure
+     */
+    public function clear_license()
+    {
+        return $this->preferences_service->delete_preference_by_key(self::LICENSE_PREFERENCE_KEY);
+    }
 }

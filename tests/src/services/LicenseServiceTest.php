@@ -106,4 +106,36 @@ class LicenseServiceTest extends TestCase
 
         $this->assertFalse($result);
     }
+
+    /**
+     * Test clear_license success
+     */
+    public function test_clear_license_success()
+    {
+        $prefs_mock = Mockery::mock('Preferences_Service');
+        $prefs_mock->shouldReceive('delete_preference_by_key')
+            ->with('license')
+            ->andReturn(true);
+
+        $service = new License_Service($prefs_mock);
+        $result = $service->clear_license();
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test clear_license failure
+     */
+    public function test_clear_license_failure()
+    {
+        $prefs_mock = Mockery::mock('Preferences_Service');
+        $prefs_mock->shouldReceive('delete_preference_by_key')
+            ->with('license')
+            ->andReturn(false);
+
+        $service = new License_Service($prefs_mock);
+        $result = $service->clear_license();
+
+        $this->assertFalse($result);
+    }
 }

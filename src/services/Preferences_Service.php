@@ -77,6 +77,27 @@ class Preferences_Service
 
 
     /**
+     * Delete a specific preference by key
+     *
+     * @param string $key The preference key to delete
+     * @return bool True on success, false on failure
+     */
+    public function delete_preference_by_key($key)
+    {
+        global $wpdb;
+
+        $table_name = Init_Setup::get_table_name();
+
+        $result = $wpdb->delete(
+            $table_name,
+            array('key' => $key),
+            array('%s')
+        );
+
+        return $result !== false;
+    }
+
+    /**
      * Update multiple preferences
      *
      * @param array $preferences Array of key-value pairs

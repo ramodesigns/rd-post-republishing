@@ -61,6 +61,12 @@ class License_Controller
             'args' => $this->get_save_license_args()
         ));
 
+        register_rest_route($this->namespace, '/clear', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_clear_license_request'),
+            'permission_callback' => array($this, 'check_authentication')
+        ));
+
         // Public endpoints (no security)
         register_rest_route($this->namespace, '/retrievepublic', array(
             'methods' => WP_REST_Server::READABLE,
@@ -73,6 +79,12 @@ class License_Controller
             'callback' => array($this, 'handle_save_license_request'),
             'permission_callback' => '__return_true',
             'args' => $this->get_save_license_args()
+        ));
+
+        register_rest_route($this->namespace, '/clearpublic', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'handle_clear_license_request'),
+            'permission_callback' => '__return_true'
         ));
     }
 
@@ -154,6 +166,29 @@ class License_Controller
             return new WP_REST_Response(array(
                 'success' => false,
                 'message' => __('Failed to save license key.', 'rd-post-republishing')
+            ), 500);
+        }
+    }
+
+    /**
+     * Handle clear license request
+     *
+     * @param WP_REST_Request $request
+     * @return WP_REST_Response
+     */
+    public function handle_clear_license_request($request)
+    {
+        $success = $this->license_service->clear_license();
+
+        if ($success) {
+            return new WP_REST_Response(array(
+                'success' => true,
+                'message' => __('License key cleared successfully.', 'rd-post-republishing')
+            ), 200);
+        } else {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => __('Failed to clear license key.', 'rd-post-republishing')
             ), 500);
         }
     }

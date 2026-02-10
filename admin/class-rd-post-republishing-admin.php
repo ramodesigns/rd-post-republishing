@@ -218,6 +218,7 @@ class Rd_Post_Republishing_Admin {
 				'rdPrSettings',
 				array(
 					'restUrl'         => esc_url_raw( rest_url( 'postmetadata/v1/preferences' ) ),
+					'licenseUrl'      => esc_url_raw( rest_url( 'postmetadata/v1/license' ) ),
 					'calculationUrl'  => esc_url_raw( rest_url( 'postmetadata/v1/calculation' ) ),
 					'nonce'           => wp_create_nonce( 'wp_rest' ),
 				)
