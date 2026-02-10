@@ -240,11 +240,17 @@
 		 * Show validation error message
 		 */
 		function showValidationError(message) {
-			var $error = $('#rd-pr-validation-error');
+			var $activeTab = $('.rd-pr-tab-content.rd-pr-tab-active');
+			var $error = $activeTab.find('.rd-pr-validation-error');
 
 			if ($error.length === 0) {
-				$error = $('<div id="rd-pr-validation-error" class="rd-pr-validation-error"></div>');
-				$submitGroup.before($error);
+				$error = $('<div class="rd-pr-validation-error"></div>');
+				var $target = $activeTab.find('.rd-pr-submit-group');
+				if ($target.length === 0) {
+					// Fallback for tabs without a submit group
+					$target = $activeTab.find('.rd-pr-form, .rd-pr-field-group').last();
+				}
+				$target.before($error);
 			}
 
 			$error.text(message).show();
@@ -254,7 +260,7 @@
 		 * Hide validation error message
 		 */
 		function hideValidationError() {
-			$('#rd-pr-validation-error').hide();
+			$('.rd-pr-validation-error').hide();
 		}
 
 		// Slider value display
@@ -285,7 +291,7 @@
 				}
 			} else {
 				$licenseStatusInput.val('Not Registered');
-				$registerLicenseButton.prop('disabled', false).show();
+				$registerLicenseButton.prop('disabled', false).text('Register').show();
 				$clearLicenseButton.hide();
 				$licenseKeyInput.val('');
 			}
@@ -594,11 +600,17 @@
 		 */
 		function showSuccessMessage(message) {
 			hideValidationError();
-			var $success = $('#rd-pr-success-message');
+			var $activeTab = $('.rd-pr-tab-content.rd-pr-tab-active');
+			var $success = $activeTab.find('.rd-pr-success-message');
 
 			if ($success.length === 0) {
-				$success = $('<div id="rd-pr-success-message" class="rd-pr-success-message"></div>');
-				$submitGroup.before($success);
+				$success = $('<div class="rd-pr-success-message"></div>');
+				var $target = $activeTab.find('.rd-pr-submit-group');
+				if ($target.length === 0) {
+					// Fallback for tabs without a submit group
+					$target = $activeTab.find('.rd-pr-form, .rd-pr-field-group').last();
+				}
+				$target.before($success);
 			}
 
 			$success.text(message).show();
