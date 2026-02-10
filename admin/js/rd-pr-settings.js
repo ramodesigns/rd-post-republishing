@@ -278,14 +278,14 @@
 		function updateLicenseUI(isRegistered, licenseKey) {
 			if (isRegistered) {
 				$licenseStatusInput.val('Registered');
-				$registerLicenseButton.prop('disabled', true);
+				$registerLicenseButton.prop('disabled', true).hide();
 				$clearLicenseButton.show();
 				if (licenseKey) {
 					$licenseKeyInput.val(licenseKey);
 				}
 			} else {
 				$licenseStatusInput.val('Not Registered');
-				$registerLicenseButton.prop('disabled', false);
+				$registerLicenseButton.prop('disabled', false).show();
 				$clearLicenseButton.hide();
 				$licenseKeyInput.val('');
 			}
@@ -318,19 +318,8 @@
 		// Register License button handler
 		$registerLicenseButton.on('click', function() {
 			var licenseKey = $licenseKeyInput.val();
-			if (!licenseKey) {
-				showValidationError('Please enter a license key.');
-				return;
-			}
-
-			// Alphanumeric validation (matching backend)
-			if (!/^[a-z0-9]+$/i.test(licenseKey)) {
-				showValidationError('License key must be alphanumeric.');
-				return;
-			}
-
-			if (licenseKey.length > 50) {
-				showValidationError('License key cannot exceed 50 characters.');
+			if (!licenseKey || !/^[a-z0-9]+$/i.test(licenseKey) || licenseKey.length > 50) {
+				showValidationError('Please enter a valid license key before activating.');
 				return;
 			}
 
@@ -351,12 +340,12 @@
 						showSuccessMessage('License key registered successfully.');
 						updateLicenseUI(true, licenseKey);
 					} else {
-						showValidationError(response.message || 'Failed to register license key.');
+						showValidationError(response.message || 'Please enter a valid license key before activating.');
 						$btn.prop('disabled', false).text(originalText);
 					}
 				},
 				error: function(xhr) {
-					var message = 'Failed to register license key.';
+					var message = 'Please enter a valid license key before activating.';
 					if (xhr.responseJSON && xhr.responseJSON.message) {
 						message = xhr.responseJSON.message;
 					}
