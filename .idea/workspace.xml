@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bf21e13f-bd0a-463f-ac8b-75611608cb46" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.phpunit.result.cache" beforeDir="false" afterPath="$PROJECT_DIR$/.phpunit.result.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/index.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/services/index.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/bootstrap.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/bootstrap.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -155,7 +159,7 @@
       <workItem from="1769637408890" duration="1114000" />
       <workItem from="1769868478254" duration="15260000" />
       <workItem from="1770075401277" duration="1239000" />
-      <workItem from="1770752750293" duration="1407000" />
+      <workItem from="1770752750293" duration="2992000" />
     </task>
     <servers />
   </component>
@@ -183,6 +187,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/rd_post_republishing@CalculationServiceTest_test_calculate_sum.xml" NAME="CalculationServiceTest.test_calculate_sum Coverage Results" MODIFIED="1769956236851" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/rd_post_republishing@CalculationServiceTest__1_.xml" NAME="CalculationServiceTest (1) Coverage Results" MODIFIED="1769959433025" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/rd_post_republishing@rd_post_republishing.xml" NAME="rd-post-republishing Coverage Results" MODIFIED="1769960880964" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/rd_post_republishing@rd_post_republishing.xml" NAME="rd-post-republishing Coverage Results" MODIFIED="1770755565962" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="PhpCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>

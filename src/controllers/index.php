@@ -23,3 +23,6 @@ new History_Controller($auth_helper);
 
 require_once plugin_dir_path( __FILE__ ) . 'Authentication_Controller.php';
 new Authentication_Controller($auth_helper);
+
+require_once plugin_dir_path( __FILE__ ) . 'License_Controller.php';
+new License_Controller($auth_helper);
