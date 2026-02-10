@@ -308,6 +308,17 @@
 			});
 		});
 
+		// Register License button handler (placeholder)
+		$('#rd-pr-register-license').on('click', function() {
+			var licenseKey = $('#rd-pr-license-key').val();
+			if (!licenseKey) {
+				showValidationError('Please enter a license key.');
+				return;
+			}
+			// For now, just show a message or do nothing as requested by the task
+			showSuccessMessage('License registration attempted for key: ' + licenseKey);
+		});
+
 		// Generate Token button handler
 		$generateTokenButton.on('click', function() {
 			generateNewToken($(this), function(token) {

@@ -31,6 +31,7 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 	<h2 class="nav-tab-wrapper rd-pr-nav-tab-wrapper">
 		<a href="#preferences" class="nav-tab nav-tab-active" data-tab="preferences"><?php esc_html_e( 'Preferences', 'rd-post-republishing' ); ?></a>
 		<a href="#access-token" class="nav-tab" data-tab="access-token"><?php esc_html_e( 'Access Token', 'rd-post-republishing' ); ?></a>
+		<a href="#license" class="nav-tab" data-tab="license"><?php esc_html_e( 'License Activation', 'rd-post-republishing' ); ?></a>
 	</h2>
 
 	<div class="rd-pr-settings-content">
@@ -208,6 +209,37 @@ for ( $hour = 2; $hour <= 22; $hour++ ) {
 						<span class="rd-pr-field-description">
 							<?php esc_html_e( 'This token is required for public API access when Debug mode is off.', 'rd-post-republishing' ); ?>
 						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="rd-pr-tab-license" class="rd-pr-tab-content">
+			<div class="rd-pr-form">
+				<h2><?php esc_html_e( 'License Activation', 'rd-post-republishing' ); ?></h2>
+
+				<!-- License Key Field -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-license-key">
+						<?php esc_html_e( 'License Key', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<div class="rd-pr-token-container">
+							<input type="text" id="rd-pr-license-key" name="license_key" class="rd-pr-input" placeholder="<?php esc_attr_e( 'Enter your license key', 'rd-post-republishing' ); ?>">
+							<button type="button" id="rd-pr-register-license" class="rd-pr-button rd-pr-button-primary">
+								<?php esc_html_e( 'Register', 'rd-post-republishing' ); ?>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Status Field -->
+				<div class="rd-pr-field-group">
+					<label class="rd-pr-field-label" for="rd-pr-license-status">
+						<?php esc_html_e( 'Status', 'rd-post-republishing' ); ?>
+					</label>
+					<div class="rd-pr-field-input">
+						<input type="text" id="rd-pr-license-status" class="rd-pr-input" value="<?php esc_attr_e( 'Not Registered', 'rd-post-republishing' ); ?>" readonly>
 					</div>
 				</div>
 			</div>
