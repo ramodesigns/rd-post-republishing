@@ -8,3 +8,4 @@ if (!defined('ABSPATH')) {
 }
 
 require_once plugin_dir_path(__FILE__) . 'Authorisation_Helper.php';
+require_once plugin_dir_path(__FILE__) . 'Calculation_Helper.php';
